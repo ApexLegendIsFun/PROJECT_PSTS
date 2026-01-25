@@ -4,6 +4,8 @@ using ProjectSS.Core;
 using ProjectSS.Data;
 using ProjectSS.Map;
 using ProjectSS.Combat;
+using MapType = ProjectSS.Core.MapType;
+using RegionStateData = ProjectSS.Data.RegionStateData;
 
 namespace ProjectSS.Run
 {
@@ -83,6 +85,7 @@ namespace ProjectSS.Run
 
         private void SubscribeToEvents()
         {
+            EventBus.Subscribe<RunInitRequestedEvent>(OnRunInitRequested);
             EventBus.Subscribe<TagInEvent>(OnTagInEvent);
             EventBus.Subscribe<EnemyBrokenEvent>(OnEnemyBrokenEvent);
             EventBus.Subscribe<CombatPerformanceEvent>(OnCombatPerformanceEvent);
@@ -90,9 +93,22 @@ namespace ProjectSS.Run
 
         private void UnsubscribeFromEvents()
         {
+            EventBus.Unsubscribe<RunInitRequestedEvent>(OnRunInitRequested);
             EventBus.Unsubscribe<TagInEvent>(OnTagInEvent);
             EventBus.Unsubscribe<EnemyBrokenEvent>(OnEnemyBrokenEvent);
             EventBus.Unsubscribe<CombatPerformanceEvent>(OnCombatPerformanceEvent);
+        }
+
+        /// <summary>
+        /// 런 초기화 요청 처리
+        /// Handle run init request
+        /// </summary>
+        private void OnRunInitRequested(RunInitRequestedEvent evt)
+        {
+            if (!IsRunActive)
+            {
+                StartNewRun();
+            }
         }
 
         private void OnTagInEvent(TagInEvent evt)
@@ -158,10 +174,16 @@ namespace ProjectSS.Run
                 currentRunState.AddRelic(starterRelic);
             }
 
-            // 맵 생성
+            // 지역 초기화
+            if (RegionManager.Instance != null)
+            {
+                RegionManager.Instance.InitializeRun();
+            }
+
+            // 맵 생성 (마을에서 시작)
             if (MapManager.Instance != null)
             {
-                MapManager.Instance.GenerateNewMap(runSeed);
+                MapManager.Instance.GenerateNewMap(runSeed, MapType.Town);
                 floorManager = new FloorManager(currentRunState, MapManager.Instance);
             }
 
@@ -236,6 +258,18 @@ namespace ProjectSS.Run
             playerState = new PlayerState();
             playerState.LoadFromRunState(currentRunState, cardDb, relicDb);
 
+            // 지역 상태 로드
+            if (RegionManager.Instance != null)
+            {
+                var regionState = new RegionStateData
+                {
+                    currentRegionId = savedState.currentRegionId,
+                    currentRegionIndex = savedState.currentRegionIndex,
+                    completedRegionIds = savedState.completedRegionIds ?? new List<string>()
+                };
+                RegionManager.Instance.LoadRegionState(regionState);
+            }
+
             // 맵 로드
             if (MapManager.Instance != null)
             {
@@ -257,6 +291,16 @@ namespace ProjectSS.Run
             {
                 playerState.SaveToRunState(currentRunState);
             }
+
+            // 지역 상태 저장
+            if (RegionManager.Instance != null)
+            {
+                var regionState = RegionManager.Instance.GetRegionState();
+                currentRunState.currentRegionId = regionState.currentRegionId;
+                currentRunState.currentRegionIndex = regionState.currentRegionIndex;
+                currentRunState.completedRegionIds = regionState.completedRegionIds;
+            }
+
             return currentRunState.Clone();
         }
 

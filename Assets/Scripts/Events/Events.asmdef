@@ -1,0 +1,19 @@
+{
+    "name": "Events",
+    "rootNamespace": "ProjectSS.Events",
+    "references": [
+        "Core",
+        "Data",
+        "Run",
+        "Utility"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -6,7 +6,7 @@ namespace ProjectSS.Map
     /// </summary>
     public interface INodeType
     {
-        Data.MapNodeType NodeType { get; }
+        Core.MapNodeType NodeType { get; }
         void OnNodeEnter();
         void OnNodeComplete();
     }

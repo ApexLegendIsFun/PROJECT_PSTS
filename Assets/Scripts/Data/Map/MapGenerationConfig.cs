@@ -1,4 +1,5 @@
 using UnityEngine;
+using ProjectSS.Core;
 
 namespace ProjectSS.Data
 {
@@ -9,64 +10,132 @@ namespace ProjectSS.Data
     [CreateAssetMenu(fileName = "MapConfig", menuName = "Game/Map/Generation Config")]
     public class MapGenerationConfig : ScriptableObject
     {
-        [Header("맵 구조 (Map Structure)")]
-        [Tooltip("총 층 수 / Total number of floors")]
-        [Range(10, 25)]
-        public int numberOfFloors = 15;
+        [Header("생성 모드 (Generation Mode)")]
+        [Tooltip("미리 정의된 레이아웃 사용 / Use predefined layout")]
+        public bool usePredefinedLayout = false;
+
+        [Tooltip("미리 정의된 맵 레이아웃 / Predefined map layout")]
+        public MapLayoutData predefinedLayout;
+
+        [Header("맵 타입 (Map Type)")]
+        [Tooltip("맵 타입 / Map type")]
+        public MapType mapType = MapType.Field;
+
+        [Header("마을 설정 (Town Settings)")]
+        [Tooltip("마을 노드 수 / Town node count")]
+        [Range(2, 5)]
+        public int townNodeCount = 3;
+
+        [Tooltip("상점 가중치 / Shop weight")]
+        [Range(0f, 1f)]
+        public float townShopWeight = 0.4f;
+
+        [Tooltip("휴식 가중치 / Rest weight")]
+        [Range(0f, 1f)]
+        public float townRestWeight = 0.4f;
+
+        [Tooltip("이벤트 가중치 / Event weight")]
+        [Range(0f, 1f)]
+        public float townEventWeight = 0.2f;
+
+        [Header("필드 설정 (Field Settings)")]
+        [Tooltip("필드 층 수 / Field floor count")]
+        [Range(5, 15)]
+        public int fieldFloors = 8;
 
         [Tooltip("층당 최소 노드 수 / Min nodes per floor")]
-        [Range(1, 5)]
-        public int minNodesPerFloor = 2;
+        [Range(1, 4)]
+        public int fieldMinNodesPerFloor = 2;
 
         [Tooltip("층당 최대 노드 수 / Max nodes per floor")]
-        [Range(2, 6)]
-        public int maxNodesPerFloor = 4;
+        [Range(2, 5)]
+        public int fieldMaxNodesPerFloor = 3;
 
-        [Header("노드 분포 (Node Distribution)")]
-        [Tooltip("일반 전투 가중치 / Combat node weight")]
+        [Tooltip("전투 가중치 / Combat weight")]
         [Range(0f, 1f)]
-        public float combatNodeWeight = 0.45f;
+        public float fieldCombatWeight = 0.5f;
 
-        [Tooltip("이벤트 가중치 / Event node weight")]
+        [Tooltip("이벤트 가중치 / Event weight")]
         [Range(0f, 1f)]
-        public float eventNodeWeight = 0.22f;
+        public float fieldEventWeight = 0.3f;
 
-        [Tooltip("엘리트 가중치 / Elite node weight")]
+        [Tooltip("보물 가중치 / Treasure weight")]
         [Range(0f, 1f)]
-        public float eliteNodeWeight = 0.08f;
+        public float fieldTreasureWeight = 0.2f;
 
-        [Tooltip("휴식 가중치 / Rest node weight")]
+        [Header("던전 설정 (Dungeon Settings)")]
+        [Tooltip("던전 층 수 / Dungeon floor count")]
+        [Range(3, 10)]
+        public int dungeonFloors = 5;
+
+        [Tooltip("층당 최소 노드 수 / Min nodes per floor")]
+        [Range(1, 3)]
+        public int dungeonMinNodesPerFloor = 1;
+
+        [Tooltip("층당 최대 노드 수 / Max nodes per floor")]
+        [Range(1, 4)]
+        public int dungeonMaxNodesPerFloor = 2;
+
+        [Tooltip("전투 가중치 / Combat weight")]
         [Range(0f, 1f)]
-        public float restNodeWeight = 0.12f;
+        public float dungeonCombatWeight = 0.5f;
 
-        [Tooltip("상점 가중치 / Shop node weight")]
+        [Tooltip("엘리트 가중치 / Elite weight")]
         [Range(0f, 1f)]
-        public float shopNodeWeight = 0.08f;
+        public float dungeonEliteWeight = 0.5f;
 
-        [Tooltip("보물 가중치 / Treasure node weight")]
-        [Range(0f, 1f)]
-        public float treasureNodeWeight = 0.05f;
+        /// <summary>
+        /// 현재 맵 타입에 따른 층 수 반환
+        /// Get floor count based on current map type
+        /// </summary>
+        public int GetFloorCount()
+        {
+            return mapType switch
+            {
+                MapType.Town => 1,
+                MapType.Field => fieldFloors,
+                MapType.Dungeon => dungeonFloors,
+                _ => fieldFloors
+            };
+        }
 
-        [Header("특수 규칙 (Special Rules)")]
-        [Tooltip("보스 층 (마지막 층) / Boss floor (last floor)")]
-        public int bossFloor = 15;
+        /// <summary>
+        /// 현재 맵 타입에 따른 최소 노드 수 반환
+        /// Get min nodes per floor based on current map type
+        /// </summary>
+        public int GetMinNodesPerFloor()
+        {
+            return mapType switch
+            {
+                MapType.Town => townNodeCount,
+                MapType.Field => fieldMinNodesPerFloor,
+                MapType.Dungeon => dungeonMinNodesPerFloor,
+                _ => 2
+            };
+        }
 
-        [Tooltip("엘리트 등장 최소 층 / Min floor for elite")]
-        [Range(1, 10)]
-        public int minFloorsBeforeElite = 5;
-
-        [Tooltip("휴식 보장 층 / Guaranteed rest floor")]
-        [Range(5, 12)]
-        public int restGuaranteeFloor = 8;
+        /// <summary>
+        /// 현재 맵 타입에 따른 최대 노드 수 반환
+        /// Get max nodes per floor based on current map type
+        /// </summary>
+        public int GetMaxNodesPerFloor()
+        {
+            return mapType switch
+            {
+                MapType.Town => townNodeCount,
+                MapType.Field => fieldMaxNodesPerFloor,
+                MapType.Dungeon => dungeonMaxNodesPerFloor,
+                _ => 4
+            };
+        }
 
         private void OnValidate()
         {
             // 최대가 최소보다 크도록 보장
-            if (maxNodesPerFloor < minNodesPerFloor)
-                maxNodesPerFloor = minNodesPerFloor;
-
-            // 보스 층이 총 층 수와 일치하도록
-            bossFloor = numberOfFloors;
+            if (fieldMaxNodesPerFloor < fieldMinNodesPerFloor)
+                fieldMaxNodesPerFloor = fieldMinNodesPerFloor;
+            if (dungeonMaxNodesPerFloor < dungeonMinNodesPerFloor)
+                dungeonMaxNodesPerFloor = dungeonMinNodesPerFloor;
         }
     }
 }

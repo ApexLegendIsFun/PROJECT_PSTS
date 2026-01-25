@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using ProjectSS.Core;
 using ProjectSS.Data;
 using ProjectSS.Utility;
 
 namespace ProjectSS.Map
 {
     /// <summary>
-    /// 맵 생성기 (슬더슬 스타일 분기 맵)
-    /// Map generator (Slay the Spire style branching map)
+    /// 맵 생성기 (마을/필드/던전 허브 시스템)
+    /// Map generator (Town/Field/Dungeon hub system)
     /// </summary>
     public class MapGenerator
     {
@@ -16,11 +17,10 @@ namespace ProjectSS.Map
         private MapGenerationConfig config;
 
         // 기본 설정값
-        private const int DEFAULT_FLOORS = 15;
-        private const int MIN_NODES_PER_FLOOR = 2;
-        private const int MAX_NODES_PER_FLOOR = 4;
         private const float NODE_SPACING_X = 2f;
         private const float NODE_SPACING_Y = 1.5f;
+
+        public MapType CurrentMapType => config?.mapType ?? MapType.Field;
 
         public MapGenerator(SeededRandom rng, MapGenerationConfig config = null)
         {
@@ -34,26 +34,257 @@ namespace ProjectSS.Map
         /// </summary>
         public MapData GenerateMap()
         {
-            int floors = config != null ? config.numberOfFloors : DEFAULT_FLOORS;
-            var mapData = new MapData();
-
-            // 각 층별 노드 생성
-            for (int floor = 0; floor < floors; floor++)
+            // 미리 정의된 레이아웃 사용
+            if (config?.usePredefinedLayout == true && config.predefinedLayout != null)
             {
-                var floorNodes = CreateFloorNodes(floor, floors);
-                mapData.AddFloor(floorNodes);
+                return LoadFromLayout(config.predefinedLayout);
             }
 
-            // 노드 연결
-            ConnectNodes(mapData);
+            MapType mapType = config?.mapType ?? MapType.Field;
+            return GenerateMap(mapType);
+        }
 
-            // 노드 타입 할당
-            AssignNodeTypes(mapData, floors);
+        /// <summary>
+        /// 미리 정의된 레이아웃에서 맵 로드
+        /// Load map from predefined layout
+        /// </summary>
+        public MapData LoadFromLayout(MapLayoutData layout)
+        {
+            if (layout == null)
+            {
+                Debug.LogError("MapGenerator: Layout is null");
+                return GenerateMap(config?.mapType ?? MapType.Field);
+            }
+
+            var mapData = new MapData(layout.mapType);
+
+            // 각 층의 노드 생성
+            foreach (var floorLayout in layout.floors)
+            {
+                var nodes = new List<MapNode>();
+                foreach (var nodeLayout in floorLayout.nodes)
+                {
+                    var node = new MapNode(
+                        floorLayout.floorIndex,
+                        nodeLayout.column,
+                        nodeLayout.nodeType
+                    );
+
+                    // 위치 계산
+                    Vector2 position = CalculateNodePosition(floorLayout.floorIndex, nodeLayout, floorLayout.nodes.Count);
+                    node.SetPosition(position);
+
+                    nodes.Add(node);
+                }
+                mapData.AddFloor(nodes);
+            }
+
+            // 노드 연결 설정
+            ConnectNodesFromLayout(mapData, layout);
+
+            // 초기 접근성 설정
+            SetInitialAccessibility(mapData);
+
+            return mapData;
+        }
+
+        /// <summary>
+        /// 레이아웃 기반 노드 위치 계산
+        /// Calculate node position from layout
+        /// </summary>
+        private Vector2 CalculateNodePosition(int floor, NodeLayoutData nodeLayout, int nodesInFloor)
+        {
+            float startX = -(nodesInFloor - 1) * NODE_SPACING_X / 2f;
+            float x = startX + nodeLayout.column * NODE_SPACING_X + nodeLayout.positionOffset.x;
+            float y = floor * NODE_SPACING_Y + nodeLayout.positionOffset.y;
+            return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// 레이아웃 기반 노드 연결
+        /// Connect nodes from layout data
+        /// </summary>
+        private void ConnectNodesFromLayout(MapData mapData, MapLayoutData layout)
+        {
+            for (int floor = 0; floor < layout.floors.Count - 1; floor++)
+            {
+                var currentFloorLayout = layout.floors[floor];
+                var currentFloorNodes = mapData.GetFloor(floor);
+
+                foreach (var nodeLayout in currentFloorLayout.nodes)
+                {
+                    var node = mapData.GetNode(nodeLayout.GetNodeId(floor));
+                    if (node == null) continue;
+
+                    foreach (int targetColumn in nodeLayout.connectsToColumns)
+                    {
+                        string targetNodeId = $"node_{floor + 1}_{targetColumn}";
+                        var targetNode = mapData.GetNode(targetNodeId);
+                        if (targetNode != null)
+                        {
+                            node.AddConnection(targetNodeId);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 초기 접근성 설정
+        /// Set initial accessibility
+        /// </summary>
+        private void SetInitialAccessibility(MapData mapData)
+        {
+            if (mapData.FloorCount == 0) return;
+
+            // Town 맵은 모든 노드 접근 가능
+            if (mapData.MapType == MapType.Town)
+            {
+                foreach (var node in mapData.GetAllNodes())
+                {
+                    node.IsAccessible = true;
+                }
+            }
+            else
+            {
+                // 다른 맵은 첫 층만 접근 가능
+                foreach (var node in mapData.GetFloor(0))
+                {
+                    node.IsAccessible = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 맵 타입에 따른 맵 생성
+        /// Generate map based on map type
+        /// </summary>
+        public MapData GenerateMap(MapType mapType)
+        {
+            return mapType switch
+            {
+                MapType.Town => GenerateTownMap(),
+                MapType.Field => GenerateFieldMap(),
+                MapType.Dungeon => GenerateDungeonMap(),
+                _ => GenerateFieldMap()
+            };
+        }
+
+        #region Town Map Generation (Fixed Layout)
+
+        /// <summary>
+        /// 마을 맵 생성 (고정 레이아웃)
+        /// Generate town map (fixed layout)
+        /// </summary>
+        private MapData GenerateTownMap()
+        {
+            var mapData = new MapData(MapType.Town);
+
+            // 고정 레이아웃: Shop, Rest, Event
+            var nodes = new List<MapNode>
+            {
+                new MapNode(0, 0, MapNodeType.Shop),
+                new MapNode(0, 1, MapNodeType.Rest),
+                new MapNode(0, 2, MapNodeType.Event)
+            };
+
+            // 고정 위치 설정
+            nodes[0].SetPosition(new Vector2(-2f, 0f));
+            nodes[1].SetPosition(new Vector2(0f, 1f));
+            nodes[2].SetPosition(new Vector2(2f, 0f));
+
+            mapData.AddFloor(nodes);
+
+            // 마을의 모든 노드는 접근 가능
+            foreach (var node in mapData.GetAllNodes())
+            {
+                node.IsAccessible = true;
+            }
+
+            return mapData;
+        }
+
+        #endregion
+
+        #region Field Map Generation (Fixed Layout)
+
+        /// <summary>
+        /// 필드 맵 생성 (고정 레이아웃)
+        /// Generate field map (fixed layout)
+        /// </summary>
+        private MapData GenerateFieldMap()
+        {
+            var mapData = new MapData(MapType.Field);
+
+            // Floor 0: 2 Combat nodes
+            var floor0 = new List<MapNode>
+            {
+                new MapNode(0, 0, MapNodeType.Combat),
+                new MapNode(0, 1, MapNodeType.Combat)
+            };
+            mapData.AddFloor(floor0);
+
+            // Floor 1: Combat, Event, Combat
+            var floor1 = new List<MapNode>
+            {
+                new MapNode(1, 0, MapNodeType.Combat),
+                new MapNode(1, 1, MapNodeType.Event),
+                new MapNode(1, 2, MapNodeType.Combat)
+            };
+            mapData.AddFloor(floor1);
+
+            // Floor 2: Treasure, Combat
+            var floor2 = new List<MapNode>
+            {
+                new MapNode(2, 0, MapNodeType.Treasure),
+                new MapNode(2, 1, MapNodeType.Combat)
+            };
+            mapData.AddFloor(floor2);
+
+            // Floor 3: Combat, Event
+            var floor3 = new List<MapNode>
+            {
+                new MapNode(3, 0, MapNodeType.Combat),
+                new MapNode(3, 1, MapNodeType.Event)
+            };
+            mapData.AddFloor(floor3);
+
+            // Floor 4: Elite
+            var floor4 = new List<MapNode>
+            {
+                new MapNode(4, 0, MapNodeType.Elite)
+            };
+            mapData.AddFloor(floor4);
+
+            // Floor 5: Rest
+            var floor5 = new List<MapNode>
+            {
+                new MapNode(5, 0, MapNodeType.Rest)
+            };
+            mapData.AddFloor(floor5);
+
+            // Floor 6: Combat, Shop
+            var floor6 = new List<MapNode>
+            {
+                new MapNode(6, 0, MapNodeType.Combat),
+                new MapNode(6, 1, MapNodeType.Shop)
+            };
+            mapData.AddFloor(floor6);
+
+            // Floor 7: Event (leads to dungeon)
+            var floor7 = new List<MapNode>
+            {
+                new MapNode(7, 0, MapNodeType.Event)
+            };
+            mapData.AddFloor(floor7);
+
+            // 고정 연결 설정
+            ConnectFieldNodesFixed(mapData);
 
             // 위치 계산
-            CalculatePositions(mapData);
+            CalculatePositionsFixed(mapData);
 
-            // 첫 번째 층 노드들 접근 가능하게 설정
+            // 첫 층 접근 가능
             foreach (var node in mapData.GetFloor(0))
             {
                 node.IsAccessible = true;
@@ -62,178 +293,141 @@ namespace ProjectSS.Map
             return mapData;
         }
 
-        private List<MapNode> CreateFloorNodes(int floor, int totalFloors)
+        /// <summary>
+        /// 필드 노드 고정 연결
+        /// Connect field nodes (fixed)
+        /// </summary>
+        private void ConnectFieldNodesFixed(MapData mapData)
         {
-            var nodes = new List<MapNode>();
+            // Floor 0 → Floor 1
+            mapData.GetNode("node_0_0")?.AddConnection("node_1_0");
+            mapData.GetNode("node_0_0")?.AddConnection("node_1_1");
+            mapData.GetNode("node_0_1")?.AddConnection("node_1_1");
+            mapData.GetNode("node_0_1")?.AddConnection("node_1_2");
 
-            int minNodes = config != null ? config.minNodesPerFloor : MIN_NODES_PER_FLOOR;
-            int maxNodes = config != null ? config.maxNodesPerFloor : MAX_NODES_PER_FLOOR;
+            // Floor 1 → Floor 2
+            mapData.GetNode("node_1_0")?.AddConnection("node_2_0");
+            mapData.GetNode("node_1_1")?.AddConnection("node_2_0");
+            mapData.GetNode("node_1_1")?.AddConnection("node_2_1");
+            mapData.GetNode("node_1_2")?.AddConnection("node_2_1");
 
-            // 첫 층과 보스 층은 특수 처리
-            int nodeCount;
-            if (floor == 0)
-            {
-                nodeCount = 3; // 시작 층은 3개
-            }
-            else if (floor == totalFloors - 1)
-            {
-                nodeCount = 1; // 보스 층은 1개
-            }
-            else
-            {
-                nodeCount = random.Next(minNodes, maxNodes + 1);
-            }
+            // Floor 2 → Floor 3
+            mapData.GetNode("node_2_0")?.AddConnection("node_3_0");
+            mapData.GetNode("node_2_0")?.AddConnection("node_3_1");
+            mapData.GetNode("node_2_1")?.AddConnection("node_3_0");
+            mapData.GetNode("node_2_1")?.AddConnection("node_3_1");
 
-            for (int col = 0; col < nodeCount; col++)
-            {
-                var node = new MapNode(floor, col, MapNodeType.Combat);
-                nodes.Add(node);
-            }
+            // Floor 3 → Floor 4
+            mapData.GetNode("node_3_0")?.AddConnection("node_4_0");
+            mapData.GetNode("node_3_1")?.AddConnection("node_4_0");
 
-            return nodes;
+            // Floor 4 → Floor 5
+            mapData.GetNode("node_4_0")?.AddConnection("node_5_0");
+
+            // Floor 5 → Floor 6
+            mapData.GetNode("node_5_0")?.AddConnection("node_6_0");
+            mapData.GetNode("node_5_0")?.AddConnection("node_6_1");
+
+            // Floor 6 → Floor 7
+            mapData.GetNode("node_6_0")?.AddConnection("node_7_0");
+            mapData.GetNode("node_6_1")?.AddConnection("node_7_0");
         }
 
-        private void ConnectNodes(MapData mapData)
-        {
-            int floorCount = mapData.FloorCount;
+        #endregion
 
-            for (int floor = 0; floor < floorCount - 1; floor++)
+        #region Dungeon Map Generation (Fixed Layout)
+
+        /// <summary>
+        /// 던전 맵 생성 (고정 레이아웃)
+        /// Generate dungeon map (fixed layout)
+        /// </summary>
+        private MapData GenerateDungeonMap()
+        {
+            var mapData = new MapData(MapType.Dungeon);
+
+            // Floor 0: 2 Combat nodes
+            var floor0 = new List<MapNode>
             {
-                var currentFloor = mapData.GetFloor(floor);
-                var nextFloor = mapData.GetFloor(floor + 1);
+                new MapNode(0, 0, MapNodeType.Combat),
+                new MapNode(0, 1, MapNodeType.Combat)
+            };
+            mapData.AddFloor(floor0);
 
-                // 각 노드에서 최소 1개 연결 보장
-                foreach (var node in currentFloor)
-                {
-                    // 1-2개의 연결 생성
-                    int connections = random.Next(1, 3);
-
-                    // 가까운 노드에 우선 연결
-                    var sortedNext = new List<MapNode>(nextFloor);
-                    sortedNext.Sort((a, b) =>
-                        Mathf.Abs(a.Column - node.Column).CompareTo(Mathf.Abs(b.Column - node.Column)));
-
-                    for (int i = 0; i < Mathf.Min(connections, sortedNext.Count); i++)
-                    {
-                        node.AddConnection(sortedNext[i].NodeId);
-                    }
-                }
-
-                // 다음 층의 모든 노드가 연결되어 있는지 확인
-                foreach (var nextNode in nextFloor)
-                {
-                    bool hasIncoming = false;
-                    foreach (var currentNode in currentFloor)
-                    {
-                        if (currentNode.ConnectedNodeIds.Contains(nextNode.NodeId))
-                        {
-                            hasIncoming = true;
-                            break;
-                        }
-                    }
-
-                    // 연결이 없으면 가장 가까운 노드에서 연결
-                    if (!hasIncoming)
-                    {
-                        var closest = currentFloor[0];
-                        int minDist = Mathf.Abs(closest.Column - nextNode.Column);
-
-                        foreach (var node in currentFloor)
-                        {
-                            int dist = Mathf.Abs(node.Column - nextNode.Column);
-                            if (dist < minDist)
-                            {
-                                minDist = dist;
-                                closest = node;
-                            }
-                        }
-
-                        closest.AddConnection(nextNode.NodeId);
-                    }
-                }
-            }
-        }
-
-        private void AssignNodeTypes(MapData mapData, int totalFloors)
-        {
-            for (int floor = 0; floor < totalFloors; floor++)
+            // Floor 1: Elite
+            var floor1 = new List<MapNode>
             {
-                var floorNodes = mapData.GetFloor(floor);
+                new MapNode(1, 0, MapNodeType.Elite)
+            };
+            mapData.AddFloor(floor1);
 
-                foreach (var node in floorNodes)
-                {
-                    MapNodeType type = DetermineNodeType(floor, totalFloors);
-
-                    // 리플렉션 대신 새 노드 생성으로 타입 변경
-                    // MapNode는 immutable하지 않으므로 직접 필드 접근 필요
-                    // 여기서는 간단히 SetNodeType 메서드 추가 필요
-                    SetNodeType(node, type);
-                }
-            }
-        }
-
-        private void SetNodeType(MapNode node, MapNodeType type)
-        {
-            // MapNode에 SetType 메서드가 필요하지만, 현재는 리플렉션 사용
-            var field = typeof(MapNode).GetProperty("NodeType");
-            if (field != null)
+            // Floor 2: Combat, Elite
+            var floor2 = new List<MapNode>
             {
-                // backing field 직접 수정
-                var backingField = typeof(MapNode).GetField("<NodeType>k__BackingField",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                backingField?.SetValue(node, type);
+                new MapNode(2, 0, MapNodeType.Combat),
+                new MapNode(2, 1, MapNodeType.Elite)
+            };
+            mapData.AddFloor(floor2);
+
+            // Floor 3: Rest
+            var floor3 = new List<MapNode>
+            {
+                new MapNode(3, 0, MapNodeType.Rest)
+            };
+            mapData.AddFloor(floor3);
+
+            // Floor 4: Boss
+            var floor4 = new List<MapNode>
+            {
+                new MapNode(4, 0, MapNodeType.Boss)
+            };
+            mapData.AddFloor(floor4);
+
+            // 고정 연결 설정
+            ConnectDungeonNodesFixed(mapData);
+
+            // 위치 계산
+            CalculatePositionsFixed(mapData);
+
+            // 첫 층 접근 가능
+            foreach (var node in mapData.GetFloor(0))
+            {
+                node.IsAccessible = true;
             }
+
+            return mapData;
         }
 
-        private MapNodeType DetermineNodeType(int floor, int totalFloors)
+        /// <summary>
+        /// 던전 노드 고정 연결
+        /// Connect dungeon nodes (fixed)
+        /// </summary>
+        private void ConnectDungeonNodesFixed(MapData mapData)
         {
-            // 보스 층
-            if (floor == totalFloors - 1)
-                return MapNodeType.Boss;
+            // Floor 0 → Floor 1
+            mapData.GetNode("node_0_0")?.AddConnection("node_1_0");
+            mapData.GetNode("node_0_1")?.AddConnection("node_1_0");
 
-            // 첫 층은 항상 일반 전투
-            if (floor == 0)
-                return MapNodeType.Combat;
+            // Floor 1 → Floor 2
+            mapData.GetNode("node_1_0")?.AddConnection("node_2_0");
+            mapData.GetNode("node_1_0")?.AddConnection("node_2_1");
 
-            // 휴식 보장 층 (8층 근처)
-            int restFloor = config != null ? config.restGuaranteeFloor : 8;
-            if (floor == restFloor && random.Chance(0.7f))
-                return MapNodeType.Rest;
+            // Floor 2 → Floor 3
+            mapData.GetNode("node_2_0")?.AddConnection("node_3_0");
+            mapData.GetNode("node_2_1")?.AddConnection("node_3_0");
 
-            // 엘리트 최소 층
-            int minEliteFloor = config != null ? config.minFloorsBeforeElite : 5;
-
-            // 가중치 기반 랜덤 선택
-            float combatWeight = config != null ? config.combatNodeWeight : 0.4f;
-            float eventWeight = config != null ? config.eventNodeWeight : 0.2f;
-            float eliteWeight = floor >= minEliteFloor ? (config != null ? config.eliteNodeWeight : 0.1f) : 0f;
-            float restWeight = floor >= 3 ? (config != null ? config.restNodeWeight : 0.1f) : 0f;
-            float shopWeight = floor >= 2 ? (config != null ? config.shopNodeWeight : 0.1f) : 0f;
-            float treasureWeight = config != null ? config.treasureNodeWeight : 0.1f;
-
-            float totalWeight = combatWeight + eventWeight + eliteWeight + restWeight + shopWeight + treasureWeight;
-            float roll = random.NextFloat() * totalWeight;
-
-            float cumulative = 0;
-            cumulative += combatWeight;
-            if (roll < cumulative) return MapNodeType.Combat;
-
-            cumulative += eventWeight;
-            if (roll < cumulative) return MapNodeType.Event;
-
-            cumulative += eliteWeight;
-            if (roll < cumulative) return MapNodeType.Elite;
-
-            cumulative += restWeight;
-            if (roll < cumulative) return MapNodeType.Rest;
-
-            cumulative += shopWeight;
-            if (roll < cumulative) return MapNodeType.Shop;
-
-            return MapNodeType.Treasure;
+            // Floor 3 → Floor 4
+            mapData.GetNode("node_3_0")?.AddConnection("node_4_0");
         }
 
-        private void CalculatePositions(MapData mapData)
+        #endregion
+
+        #region Common Methods (Fixed Layout)
+
+        /// <summary>
+        /// 고정 위치 계산 (랜덤 오프셋 없음)
+        /// Calculate fixed positions (no random offset)
+        /// </summary>
+        private void CalculatePositionsFixed(MapData mapData)
         {
             int floorCount = mapData.FloorCount;
 
@@ -248,12 +442,12 @@ namespace ProjectSS.Map
                 for (int i = 0; i < nodeCount; i++)
                 {
                     float x = startX + i * NODE_SPACING_X;
-                    // 약간의 랜덤 오프셋 추가
-                    x += (random.NextFloat() - 0.5f) * 0.3f;
                     floorNodes[i].SetPosition(new Vector2(x, y));
                 }
             }
         }
+
+        #endregion
     }
 
     /// <summary>
@@ -266,7 +460,20 @@ namespace ProjectSS.Map
         private List<List<MapNode>> floors = new List<List<MapNode>>();
         private Dictionary<string, MapNode> nodeDict = new Dictionary<string, MapNode>();
 
+        /// <summary>
+        /// 맵 타입
+        /// Map type
+        /// </summary>
+        public MapType MapType { get; private set; }
+
         public int FloorCount => floors.Count;
+
+        public MapData() : this(MapType.Field) { }
+
+        public MapData(MapType mapType)
+        {
+            MapType = mapType;
+        }
 
         public void AddFloor(List<MapNode> floorNodes)
         {

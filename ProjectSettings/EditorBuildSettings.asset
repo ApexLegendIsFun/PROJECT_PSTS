@@ -27,6 +27,9 @@ EditorBuildSettings:
     path: Assets/_Project/Scenes/Rest.unity
     guid: a600a9d11bd31b7418e21e68d1a5c673
   - enabled: 1
+    path: Assets/_Project/Scenes/Reward.unity
+    guid: 56bab30182789a34d8a1f7c72bf8a900
+  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   m_configObjects: {}

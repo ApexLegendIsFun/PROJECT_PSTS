@@ -51,6 +51,28 @@ namespace ProjectSS.Run
         public string currentNodeId;
         public List<string> visitedNodeIds = new List<string>();
 
+        #region Region State
+
+        /// <summary>
+        /// 현재 지역 ID
+        /// Current region ID
+        /// </summary>
+        public string currentRegionId;
+
+        /// <summary>
+        /// 현재 지역 인덱스
+        /// Current region index
+        /// </summary>
+        public int currentRegionIndex;
+
+        /// <summary>
+        /// 완료된 지역 ID 목록
+        /// Completed region IDs
+        /// </summary>
+        public List<string> completedRegionIds = new List<string>();
+
+        #endregion
+
         // 런 메타
         public int runSeed;
         public int turnCount;
@@ -215,6 +237,11 @@ namespace ProjectSS.Run
             copy.deckUpgraded.AddRange(deckUpgraded);
             copy.relicIds.AddRange(relicIds);
             copy.visitedNodeIds.AddRange(visitedNodeIds);
+
+            // Region state
+            copy.currentRegionId = currentRegionId;
+            copy.currentRegionIndex = currentRegionIndex;
+            copy.completedRegionIds.AddRange(completedRegionIds);
 
             return copy;
         }

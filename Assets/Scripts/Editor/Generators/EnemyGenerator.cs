@@ -13,12 +13,6 @@ namespace ProjectSS.Editor.Generators
     {
         #region Menu Items
 
-        [MenuItem("Tools/Project SS/Generators/Enemy Generator Window")]
-        public static void OpenWindow()
-        {
-            EnemyGeneratorWindow.ShowWindow();
-        }
-
         [MenuItem("Tools/Project SS/Generators/Generate Act 1 Enemies")]
         public static void GenerateAct1Enemies()
         {

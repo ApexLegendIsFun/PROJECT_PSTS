@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectSS.Core;
 using ProjectSS.Data;
 
 namespace ProjectSS.Map
@@ -19,18 +20,42 @@ namespace ProjectSS.Map
         public bool IsVisited { get; private set; }
         public bool IsAccessible { get; set; }
 
+        /// <summary>
+        /// 소속 지역 ID (통합 월드맵용)
+        /// Region ID this node belongs to (for unified world map)
+        /// </summary>
+        public string RegionId { get; private set; }
+
         private List<string> connectedNodeIds = new List<string>();
 
         public IReadOnlyList<string> ConnectedNodeIds => connectedNodeIds;
 
+        /// <summary>
+        /// 기본 생성자 (기존 호환용)
+        /// Default constructor (for backward compatibility)
+        /// </summary>
         public MapNode(int floor, int column, MapNodeType type)
+            : this(floor, column, type, null)
         {
-            NodeId = $"node_{floor}_{column}";
+        }
+
+        /// <summary>
+        /// 지역 ID 포함 생성자 (통합 월드맵용)
+        /// Constructor with region ID (for unified world map)
+        /// </summary>
+        public MapNode(int floor, int column, MapNodeType type, string regionId)
+        {
             Floor = floor;
             Column = column;
             NodeType = type;
+            RegionId = regionId;
             IsVisited = false;
             IsAccessible = false;
+
+            // 노드 ID 형식: 지역 ID가 있으면 "regionId_floor_column", 없으면 "node_floor_column"
+            NodeId = string.IsNullOrEmpty(regionId)
+                ? $"node_{floor}_{column}"
+                : $"{regionId}_{floor}_{column}";
         }
 
         /// <summary>

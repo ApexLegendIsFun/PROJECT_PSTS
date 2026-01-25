@@ -7,6 +7,9 @@
         "Combat",
         "Map",
         "Run",
+        "Events",
+        "Reward",
+        "Shop",
         "Utility",
         "Unity.TextMeshPro"
     ],

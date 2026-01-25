@@ -19,6 +19,9 @@ namespace ProjectSS.Editor.Generators
         private const string CARDS_PATH = "Assets/Resources/Cards";
         private const string ENEMIES_PATH = "Assets/Resources/Enemies";
         private const string PREFABS_PATH = "Assets/Resources/Prefabs";
+        private const string SHOP_PATH = "Assets/Resources/Data/Shop";
+        private const string EVENTS_PATH = "Assets/Resources/Data/Events";
+        private const string RELICS_PATH = "Assets/Resources/Data/Relics";
 
         [MenuItem("Tools/Project SS/Setup/Setup Resources Folder")]
         public static void SetupResourcesFolder()
@@ -28,16 +31,25 @@ namespace ProjectSS.Editor.Generators
             EditorUtility.DisplayProgressBar("Resources 설정", "폴더 생성 중...", 0.1f);
             CreateFolders();
 
-            EditorUtility.DisplayProgressBar("Resources 설정", "CharacterClasses 복사 중...", 0.3f);
+            EditorUtility.DisplayProgressBar("Resources 설정", "CharacterClasses 복사 중...", 0.2f);
             copied += CopyCharacterClasses();
 
-            EditorUtility.DisplayProgressBar("Resources 설정", "Cards 복사 중...", 0.5f);
+            EditorUtility.DisplayProgressBar("Resources 설정", "Cards 복사 중...", 0.35f);
             copied += CopyCards();
 
-            EditorUtility.DisplayProgressBar("Resources 설정", "Enemies 복사 중...", 0.7f);
+            EditorUtility.DisplayProgressBar("Resources 설정", "Enemies 복사 중...", 0.5f);
             copied += CopyEnemies();
 
-            EditorUtility.DisplayProgressBar("Resources 설정", "완료 중...", 0.9f);
+            EditorUtility.DisplayProgressBar("Resources 설정", "Shop 설정 복사 중...", 0.65f);
+            copied += CopyShopConfig();
+
+            EditorUtility.DisplayProgressBar("Resources 설정", "Events 복사 중...", 0.75f);
+            copied += CopyEvents();
+
+            EditorUtility.DisplayProgressBar("Resources 설정", "Relics 복사 중...", 0.85f);
+            copied += CopyRelics();
+
+            EditorUtility.DisplayProgressBar("Resources 설정", "완료 중...", 0.95f);
             AssetDatabase.Refresh();
 
             EditorUtility.ClearProgressBar();
@@ -133,6 +145,10 @@ namespace ProjectSS.Editor.Generators
             GeneratorUtility.EnsureFolderExists(CARDS_PATH);
             GeneratorUtility.EnsureFolderExists(ENEMIES_PATH);
             GeneratorUtility.EnsureFolderExists(PREFABS_PATH);
+            GeneratorUtility.EnsureFolderExists("Assets/Resources/Data");
+            GeneratorUtility.EnsureFolderExists(SHOP_PATH);
+            GeneratorUtility.EnsureFolderExists(EVENTS_PATH);
+            GeneratorUtility.EnsureFolderExists(RELICS_PATH);
         }
 
         private static int CopyCharacterClasses()
@@ -270,8 +286,6 @@ namespace ProjectSS.Editor.Generators
         [MenuItem("Tools/Project SS/Setup/Create All Missing Assets")]
         public static void CreateAllMissingAssets()
         {
-            int created = 0;
-
             EditorUtility.DisplayProgressBar("에셋 생성", "Status Effects...", 0.2f);
             StatusEffectGenerator.GenerateMissingStatusEffects();
 

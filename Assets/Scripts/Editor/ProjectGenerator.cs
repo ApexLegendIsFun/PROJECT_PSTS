@@ -20,7 +20,7 @@ namespace ProjectSS.Editor
 
         #region Menu Items
 
-        [MenuItem("Tools/Project SS/Generate All %&a")] // Ctrl+Alt+A
+        [MenuItem("Tools/Project SS/Generate All")]
         public static void GenerateAll()
         {
             if (!EditorUtility.DisplayDialog(
@@ -91,7 +91,7 @@ namespace ProjectSS.Editor
         [MenuItem("Tools/Project SS/Generate Scenes")]
         public static void GenerateScenes()
         {
-            string[] sceneNames = { "Boot", "MainMenu", "Map", "Combat", "Event", "Shop", "Rest" };
+            string[] sceneNames = { "Boot", "MainMenu", "Map", "Combat", "Event", "Shop", "Rest", "Reward" };
 
             foreach (var sceneName in sceneNames)
             {
@@ -111,6 +111,7 @@ namespace ProjectSS.Editor
             CreateHealthBarPrefab();
             CreateIntentPrefab();
             CreateMapNodePrefab();
+            CreatePathLinePrefab();
 
             // Manager Prefabs
             CreateGameManagerPrefab();
@@ -284,8 +285,18 @@ namespace ProjectSS.Editor
             var canvasObj = new GameObject(name);
             var canvas = canvasObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+
+            // CanvasScaler 설정 (1920x1080 기준 스케일링)
+            var scaler = canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 0.5f;
+
             canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            // RectTransform 명시적 초기화 (Scale이 0이 되는 문제 방지)
+            var rectTransform = canvasObj.GetComponent<RectTransform>();
+            rectTransform.localScale = Vector3.one;
 
             // EventSystem
             if (Object.FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
@@ -489,6 +500,25 @@ namespace ProjectSS.Editor
             PrefabUtility.SaveAsPrefabAsset(nodeObj, path);
             Object.DestroyImmediate(nodeObj);
             Debug.Log("프리팹 생성: MapNodePrefab");
+        }
+
+        private static void CreatePathLinePrefab()
+        {
+            string path = $"{PREFABS_PATH}/UI/PathLinePrefab.prefab";
+            if (File.Exists(path)) return;
+
+            var lineObj = new GameObject("PathLinePrefab");
+            var rect = lineObj.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(100, 2);
+            rect.pivot = new Vector2(0, 0.5f); // 왼쪽 중앙 피벗 (선 그리기용)
+
+            // Image로 선 표현
+            var image = lineObj.AddComponent<UnityEngine.UI.Image>();
+            image.color = new Color(0.5f, 0.5f, 0.5f, 0.8f); // 회색 반투명
+
+            PrefabUtility.SaveAsPrefabAsset(lineObj, path);
+            Object.DestroyImmediate(lineObj);
+            Debug.Log("프리팹 생성: PathLinePrefab");
         }
 
         private static void CreateGameManagerPrefab()
@@ -700,9 +730,14 @@ namespace ProjectSS.Editor
             if (File.Exists(path)) return;
 
             var config = ScriptableObject.CreateInstance<MapGenerationConfig>();
-            config.numberOfFloors = 15;
-            config.minNodesPerFloor = 3;
-            config.maxNodesPerFloor = 4;
+            // 필드 설정
+            config.fieldFloors = 8;
+            config.fieldMinNodesPerFloor = 2;
+            config.fieldMaxNodesPerFloor = 3;
+            // 던전 설정
+            config.dungeonFloors = 5;
+            config.dungeonMinNodesPerFloor = 1;
+            config.dungeonMaxNodesPerFloor = 2;
 
             AssetDatabase.CreateAsset(config, path);
             Debug.Log("맵 설정 생성: MapConfig_Act1");

@@ -13,12 +13,6 @@ namespace ProjectSS.Editor.Generators
     {
         #region Menu Items
 
-        [MenuItem("Tools/Project SS/Generators/Card Generator Window")]
-        public static void OpenWindow()
-        {
-            CardGeneratorWindow.ShowWindow();
-        }
-
         [MenuItem("Tools/Project SS/Generators/Quick Create/Attack Card")]
         public static void QuickCreateAttackCard()
         {

@@ -129,6 +129,14 @@ baseDamage + Strength × Weak(0.75) × Vulnerable(1.5) - Block = finalDamage
 - ScriptableObject 메뉴: `[CreateAssetMenu(menuName = "Game/Cards/Card Data")]`
 - 이벤트 네이밍: `On{Event}` (OnCardPlayed, OnTurnStart, OnDamageTaken)
 
+## Development Flow
+
+### Generator 업데이트 규칙
+구현 또는 버그 수정 완료 후, 관련된 Unity 툴바 Generator들을 업데이트할 것:
+- 새로운 카드/적/유물 데이터 추가 시 → 해당 Generator 메뉴 확인
+- 데이터 구조 변경 시 → 영향받는 모든 Generator 업데이트
+- ScriptableObject 필드 변경 시 → Editor 도구 동기화
+
 ## Key Interfaces
 
 ```csharp

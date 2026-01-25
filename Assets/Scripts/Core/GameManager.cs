@@ -4,8 +4,8 @@ using UnityEngine.SceneManagement;
 namespace ProjectSS.Core
 {
     /// <summary>
-    /// 게임 전체 라이프사이클 관리 싱글톤
-    /// Game lifecycle management singleton
+    /// 게임 전체 라이프사이클 관리 싱글톤 (마을/필드/던전 허브 시스템)
+    /// Game lifecycle management singleton (Town/Field/Dungeon hub system)
     /// </summary>
     public class GameManager : MonoBehaviour
     {
@@ -14,6 +14,13 @@ namespace ProjectSS.Core
         [Header("Game State")]
         [SerializeField] private GameState _currentState = GameState.MainMenu;
         public GameState CurrentState => _currentState;
+
+        /// <summary>
+        /// 현재 맵 타입 (MapGeneratedEvent로 업데이트됨)
+        /// Current map type (updated via MapGeneratedEvent)
+        /// </summary>
+        private MapType _currentMapType = MapType.Town;
+        public MapType CurrentMapType => _currentMapType;
 
         public bool IsPaused { get; private set; }
 
@@ -31,11 +38,32 @@ namespace ProjectSS.Core
             Initialize();
         }
 
+        private void OnEnable()
+        {
+            // 맵 생성 완료 이벤트 구독
+            // Subscribe to map generated event
+            EventBus.Subscribe<MapGeneratedEvent>(OnMapGenerated);
+        }
+
+        private void OnDisable()
+        {
+            EventBus.Unsubscribe<MapGeneratedEvent>(OnMapGenerated);
+        }
+
         private void Initialize()
         {
             // 서비스 초기화
             // Initialize services
             ServiceLocator.Initialize();
+        }
+
+        /// <summary>
+        /// 맵 생성 완료 이벤트 핸들러
+        /// Map generated event handler
+        /// </summary>
+        private void OnMapGenerated(MapGeneratedEvent evt)
+        {
+            _currentMapType = evt.MapType;
         }
 
         #region Scene Management
@@ -126,13 +154,21 @@ namespace ProjectSS.Core
         #region Run Management
 
         /// <summary>
-        /// 새 런 시작
-        /// Start a new run
+        /// 새 런 시작 (마을에서 시작)
+        /// Start a new run (starts from town)
         /// </summary>
         public void StartNewRun()
         {
+            // 런 초기화 요청 이벤트 발행 (RunManager가 구독)
+            // Publish run init request event (RunManager subscribes)
+            EventBus.Publish(new RunInitRequestedEvent());
+
+            // 마을 맵 생성 요청 이벤트 발행 (MapManager가 구독)
+            // Publish map generation request event (MapManager subscribes)
+            int seed = System.Environment.TickCount;
+            EventBus.Publish(new MapGenerationRequestedEvent(seed, MapType.Town));
+
             SetState(GameState.Map);
-            EventBus.Publish(new RunStartedEvent());
             LoadMap();
         }
 
@@ -144,6 +180,45 @@ namespace ProjectSS.Core
         {
             EventBus.Publish(new RunEndedEvent(victory));
             LoadMainMenu();
+        }
+
+        /// <summary>
+        /// 마을로 복귀
+        /// Return to town
+        /// </summary>
+        public void ReturnToTown()
+        {
+            int seed = System.Environment.TickCount;
+            EventBus.Publish(new MapGenerationRequestedEvent(seed, MapType.Town));
+
+            SetState(GameState.Map);
+            LoadMap();
+        }
+
+        /// <summary>
+        /// 필드 진입
+        /// Enter field
+        /// </summary>
+        public void EnterField()
+        {
+            int seed = System.Environment.TickCount;
+            EventBus.Publish(new MapGenerationRequestedEvent(seed, MapType.Field));
+
+            SetState(GameState.Map);
+            LoadMap();
+        }
+
+        /// <summary>
+        /// 던전 진입
+        /// Enter dungeon
+        /// </summary>
+        public void EnterDungeon()
+        {
+            int seed = System.Environment.TickCount;
+            EventBus.Publish(new MapGenerationRequestedEvent(seed, MapType.Dungeon));
+
+            SetState(GameState.Map);
+            LoadMap();
         }
 
         #endregion

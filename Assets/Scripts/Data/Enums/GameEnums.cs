@@ -173,20 +173,9 @@ namespace ProjectSS.Data
 
     #region Map Enums
 
-    /// <summary>
-    /// 맵 노드 타입
-    /// Map node type
-    /// </summary>
-    public enum MapNodeType
-    {
-        Combat,     // 일반 전투
-        Elite,      // 엘리트 전투
-        Boss,       // 보스 전투
-        Rest,       // 휴식
-        Event,      // 이벤트
-        Shop,       // 상점
-        Treasure    // 보물
-    }
+    // MapType, MapNodeType은 Core.CoreEnums.cs로 이동됨
+    // MapType, MapNodeType moved to Core.CoreEnums.cs
+    // using ProjectSS.Core; 후 MapType, MapNodeType 사용
 
     #endregion
 

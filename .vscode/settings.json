@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Project_SS.sln"
+    "dotnet.defaultSolution": "PROJECT_PSTS.sln"
 }
