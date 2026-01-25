@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/lsd20/.claude/**)",
+      "Bash(dir:*)",
+      "Bash(dotnet build:*)",
+      "Bash(cmd /c \"dir c:\\\\Users\\\\lsd20\\\\Project_SS\\\\Assets\\\\Scripts\\\\Combat\\\\Systems\"\")",
+      "Bash(\"/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe\" Project_SS.sln /p:Configuration=Debug)",
+      "Bash(\"/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe\" \"Project_SS.sln\" \"/p:Configuration=Debug\")",
+      "Bash(\"/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe\":*)",
+      "Bash(\"/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe\" \"c:/Users/lsd20/Project_SS/Assembly-CSharp.csproj\")",
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebFetch(domain:*)",
+      "Task",
+      "TodoWrite",
+      "NotebookEdit"
+    ]
+  }
+}

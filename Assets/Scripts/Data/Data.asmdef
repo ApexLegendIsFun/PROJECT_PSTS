@@ -1,0 +1,17 @@
+{
+    "name": "Data",
+    "rootNamespace": "ProjectSS.Data",
+    "references": [
+        "Core",
+        "Utility"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

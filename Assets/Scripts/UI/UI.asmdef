@@ -1,0 +1,22 @@
+{
+    "name": "UI",
+    "rootNamespace": "ProjectSS.UI",
+    "references": [
+        "Core",
+        "Data",
+        "Combat",
+        "Map",
+        "Run",
+        "Utility",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

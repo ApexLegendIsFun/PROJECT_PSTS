@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f3455f0c0ae3134bb869d45c01f4506, type: 3}
+  m_Name: "STF_\uB3C5_Poison"
+  m_EditorClassIdentifier: 
+  statusId: "stf_\uB3C5_poison"
+  statusName: "\uB3C5 (Poison)"
+  description: "\uD134 \uC885\uB8CC \uC2DC {0} \uB370\uBBF8\uC9C0\uB97C \uBC1B\uACE0,
+    1 \uAC10\uC18C\nTake {0} damage at turn end, then decrease by 1"
+  icon: {fileID: 0}
+  effectType: 5
+  isDebuff: 1
+  stackable: 1
+  stackBehavior: 0
+  triggerTime: 1
+  valuePerStack: 1

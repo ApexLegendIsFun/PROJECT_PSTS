@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40484fd0fee64b94cbf24781650d96c4, type: 3}
+  m_Name: "ELITE_\uB77C\uAC00\uBD88\uB9B0_Lagavulin"
+  m_EditorClassIdentifier: 
+  enemyId: "ELITE_\uB77C\uAC00\uBD88\uB9B0_Lagavulin"
+  enemyName: "\uB77C\uAC00\uBD88\uB9B0 (Lagavulin)"
+  sprite: {fileID: 0}
+  enemyType: 1
+  minHealth: 109
+  maxHealth: 111
+  actionPattern:
+  - intentType: 0
+    actionName: Attack
+    damage: 18
+    block: 0
+    statusEffect: {fileID: 0}
+    statusStacks: 1
+    hitCount: 1
+  - intentType: 3
+    actionName: Siphon Soul
+    damage: 0
+    block: 0
+    statusEffect: {fileID: 0}
+    statusStacks: 2
+    hitCount: 1
+  goldReward: 30
+  cardRewardChance: 0.5
