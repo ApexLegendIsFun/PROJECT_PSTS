@@ -214,14 +214,16 @@ namespace ProjectSS.Combat.UI
             {
                 foreach (var member in CombatManager.Instance.PlayerParty)
                 {
-                    if (member.EntityId == entityId) return member.DisplayName;
+                    if (member != null && member.EntityId == entityId)
+                        return member.DisplayName ?? entityId;
                 }
                 foreach (var enemy in CombatManager.Instance.Enemies)
                 {
-                    if (enemy.EntityId == entityId) return enemy.DisplayName;
+                    if (enemy != null && enemy.EntityId == entityId)
+                        return enemy.DisplayName ?? entityId;
                 }
             }
-            return entityId;
+            return entityId ?? "Unknown";
         }
 
         #endregion

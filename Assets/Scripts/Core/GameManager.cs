@@ -21,8 +21,16 @@ namespace ProjectSS.Core
         [Header("Settings")]
         [SerializeField] private bool _debugMode = true;
 
+        // 전투 설정 데이터 (씬 전환 시 전달용)
+        private CombatSetupData _pendingCombatData;
+
         // 프로퍼티
         public GameState CurrentState => _currentState;
+
+        /// <summary>
+        /// 대기 중인 전투 데이터 존재 여부
+        /// </summary>
+        public bool HasPendingCombat => _pendingCombatData != null && _pendingCombatData.IsValid();
         public bool IsInCombat => _currentState == GameState.Combat;
         public bool IsInRun => _currentState == GameState.InRun || IsInCombat;
 
@@ -139,6 +147,59 @@ namespace ProjectSS.Core
         public void GoToMap()
         {
             LoadScene(SceneIndex.Map);
+        }
+
+        #endregion
+
+        #region Combat Data Management
+
+        /// <summary>
+        /// 전투 설정 데이터 저장 (Map에서 호출)
+        /// </summary>
+        public void PrepareCombat(CombatSetupData setupData)
+        {
+            if (setupData == null || !setupData.IsValid())
+            {
+                Debug.LogError("[GameManager] Invalid combat setup data!");
+                return;
+            }
+
+            _pendingCombatData = setupData;
+            Log($"Combat prepared: {setupData.EncounterType}, {setupData.PartyMembers.Count} party members");
+        }
+
+        /// <summary>
+        /// 대기 중인 전투 데이터 가져오기 (Combat 씬에서 호출)
+        /// 호출 후 데이터 소비됨 (null로 설정)
+        /// </summary>
+        public CombatSetupData ConsumePendingCombat()
+        {
+            var data = _pendingCombatData;
+            _pendingCombatData = null;
+
+            if (data != null)
+            {
+                Log($"Combat data consumed: {data.EncounterType}");
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// 대기 중인 전투 데이터 미리보기 (소비하지 않음)
+        /// </summary>
+        public CombatSetupData PeekPendingCombat()
+        {
+            return _pendingCombatData;
+        }
+
+        /// <summary>
+        /// 대기 중인 전투 데이터 취소
+        /// </summary>
+        public void CancelPendingCombat()
+        {
+            _pendingCombatData = null;
+            Log("Pending combat cancelled");
         }
 
         #endregion

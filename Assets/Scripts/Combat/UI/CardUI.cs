@@ -86,17 +86,26 @@ namespace ProjectSS.Combat.UI
             _backgroundImage = gameObject.AddComponent<Image>();
             _backgroundImage.color = _skillColor;
 
-            // 코스트 텍스트 (좌상단)
-            var costGo = new GameObject("CostText");
-            costGo.transform.SetParent(transform, false);
-            var costRect = costGo.AddComponent<RectTransform>();
-            costRect.anchorMin = new Vector2(0, 0.85f);
-            costRect.anchorMax = new Vector2(0.3f, 1f);
-            costRect.offsetMin = Vector2.zero;
-            costRect.offsetMax = Vector2.zero;
-            var costBg = costGo.AddComponent<Image>();
+            // 코스트 배경 (좌상단) - Image 컴포넌트
+            var costBgGo = new GameObject("CostBackground");
+            costBgGo.transform.SetParent(transform, false);
+            var costBgRect = costBgGo.AddComponent<RectTransform>();
+            costBgRect.anchorMin = new Vector2(0, 0.85f);
+            costBgRect.anchorMax = new Vector2(0.3f, 1f);
+            costBgRect.offsetMin = Vector2.zero;
+            costBgRect.offsetMax = Vector2.zero;
+            var costBg = costBgGo.AddComponent<Image>();
             costBg.color = new Color(0.2f, 0.2f, 0.4f, 1f);
-            _costText = costGo.AddComponent<Text>();
+
+            // 코스트 텍스트 - 배경의 자식으로 생성 (Text 컴포넌트)
+            var costTextGo = new GameObject("CostText");
+            costTextGo.transform.SetParent(costBgGo.transform, false);
+            var costTextRect = costTextGo.AddComponent<RectTransform>();
+            costTextRect.anchorMin = Vector2.zero;
+            costTextRect.anchorMax = Vector2.one;
+            costTextRect.offsetMin = Vector2.zero;
+            costTextRect.offsetMax = Vector2.zero;
+            _costText = costTextGo.AddComponent<Text>();
             _costText.alignment = TextAnchor.MiddleCenter;
             _costText.fontSize = 16;
             _costText.fontStyle = FontStyle.Bold;

@@ -54,7 +54,7 @@ namespace ProjectSS.Core.Events
                     }
                     catch (Exception e)
                     {
-                        UnityEngine.Debug.LogError($"[EventBus] Error handling event {type.Name}: {e.Message}");
+                        UnityEngine.Debug.LogError($"[EventBus] Error handling event {type.Name}: {e.Message}\n{e.StackTrace}");
                     }
                 }
             }

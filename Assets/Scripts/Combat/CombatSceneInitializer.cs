@@ -79,16 +79,177 @@ namespace ProjectSS.Combat
                 return;
             }
 
-            // 직접 실행이고 테스트 데이터 사용 설정된 경우
+            // 1. GameManager에서 대기 중인 전투 데이터 확인
+            if (GameManager.Instance != null && GameManager.Instance.HasPendingCombat)
+            {
+                Debug.Log("[CombatSceneInitializer] Starting combat from pending data...");
+                StartCombatFromSetupData();
+                return;
+            }
+
+            // 2. 직접 실행이고 테스트 데이터 사용 설정된 경우
             if (isDirectRun && _useTestDataOnDirectRun)
             {
                 Debug.Log("[CombatSceneInitializer] Direct scene run detected. Starting test combat...");
                 StartTestCombat();
+                return;
             }
-            else
+
+            // 3. 그 외의 경우 - 대기
+            Debug.Log("[CombatSceneInitializer] Combat scene initialized (waiting for combat data).");
+        }
+
+        /// <summary>
+        /// 설정 데이터로 전투 시작
+        /// </summary>
+        private void StartCombatFromSetupData()
+        {
+            var setupData = GameManager.Instance.ConsumePendingCombat();
+
+            if (setupData == null || !setupData.IsValid())
             {
-                Debug.Log("[CombatSceneInitializer] Combat scene initialized (waiting for combat data).");
+                Debug.LogError("[CombatSceneInitializer] Invalid combat setup data!");
+                return;
             }
+
+            var party = CreatePartyFromSetup(setupData.PartyMembers);
+            var enemies = CreateEnemiesFromSetup(setupData);
+
+            Debug.Log($"[CombatSceneInitializer] Starting combat: {setupData.EncounterType}, " +
+                      $"{party.Count} party members vs {enemies.Count} enemies");
+
+            CombatManager.Instance.StartCombat(setupData.EncounterType, party, enemies);
+        }
+
+        /// <summary>
+        /// 설정 데이터로 파티 생성
+        /// </summary>
+        private List<PartyMemberCombat> CreatePartyFromSetup(List<PartyMemberSetup> setupList)
+        {
+            var party = new List<PartyMemberCombat>();
+
+            foreach (var setup in setupList)
+            {
+                var go = new GameObject($"PartyMember_{setup.CharacterId}");
+                var member = go.AddComponent<PartyMemberCombat>();
+
+                member.Initialize(
+                    characterId: setup.CharacterId,
+                    name: setup.DisplayName,
+                    charClass: setup.CharacterClass,
+                    maxHP: setup.MaxHP,
+                    maxEnergy: setup.MaxEnergy,
+                    speed: setup.Speed
+                );
+
+                // 덱 초기화
+                InitializeDeckForCharacter(member, setup.CharacterClass, setup.CharacterId);
+
+                party.Add(member);
+                Debug.Log($"[CombatSceneInitializer] Created party member from setup: {member.DisplayName}");
+            }
+
+            return party;
+        }
+
+        /// <summary>
+        /// 설정 데이터로 적 생성
+        /// </summary>
+        private List<EnemyCombat> CreateEnemiesFromSetup(CombatSetupData setupData)
+        {
+            // 명시적 적 설정이 있으면 사용
+            if (setupData.Enemies != null && setupData.Enemies.Count > 0)
+            {
+                return CreateEnemiesFromExplicitSetup(setupData.Enemies);
+            }
+
+            // 없으면 EncounterType 기반 자동 생성
+            return GenerateEnemiesForEncounter(setupData.EncounterType);
+        }
+
+        /// <summary>
+        /// 명시적 설정으로 적 생성
+        /// </summary>
+        private List<EnemyCombat> CreateEnemiesFromExplicitSetup(List<EnemySetup> setupList)
+        {
+            var enemies = new List<EnemyCombat>();
+
+            foreach (var setup in setupList)
+            {
+                var go = new GameObject($"Enemy_{setup.EnemyId}");
+                var enemy = go.AddComponent<EnemyCombat>();
+
+                enemy.Initialize(
+                    enemyId: setup.EnemyId,
+                    name: setup.DisplayName,
+                    enemyType: setup.EnemyType,
+                    maxHP: setup.MaxHP,
+                    speed: setup.Speed,
+                    baseDamage: setup.BaseDamage
+                );
+
+                enemies.Add(enemy);
+            }
+
+            return enemies;
+        }
+
+        /// <summary>
+        /// EncounterType 기반 적 자동 생성
+        /// </summary>
+        private List<EnemyCombat> GenerateEnemiesForEncounter(TileType encounterType)
+        {
+            var enemies = new List<EnemyCombat>();
+
+            // EncounterType에 따른 적 구성
+            int enemyCount;
+            int baseHP;
+            int baseDamage;
+            string[] enemyTypes;
+
+            switch (encounterType)
+            {
+                case TileType.Boss:
+                    enemyCount = 1;
+                    baseHP = 100;
+                    baseDamage = 15;
+                    enemyTypes = new[] { "Boss" };
+                    break;
+
+                case TileType.Elite:
+                    enemyCount = 2;
+                    baseHP = 50;
+                    baseDamage = 12;
+                    enemyTypes = new[] { "Elite_A", "Elite_B" };
+                    break;
+
+                default: // TileType.Enemy
+                    enemyCount = Random.Range(2, 4);
+                    baseHP = 30;
+                    baseDamage = 8;
+                    enemyTypes = new[] { "Slime", "Goblin", "Skeleton" };
+                    break;
+            }
+
+            for (int i = 0; i < enemyCount; i++)
+            {
+                var go = new GameObject($"Enemy_{i}");
+                var enemy = go.AddComponent<EnemyCombat>();
+
+                var enemyType = enemyTypes[i % enemyTypes.Length];
+                enemy.Initialize(
+                    enemyId: $"enemy_{i}",
+                    name: $"테스트 {enemyType}",
+                    enemyType: enemyType,
+                    maxHP: baseHP + Random.Range(-5, 10),
+                    speed: 8 + i,
+                    baseDamage: baseDamage + Random.Range(-2, 3)
+                );
+
+                enemies.Add(enemy);
+            }
+
+            return enemies;
         }
 
         /// <summary>

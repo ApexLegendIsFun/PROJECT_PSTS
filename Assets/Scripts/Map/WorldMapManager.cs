@@ -324,12 +324,84 @@ namespace ProjectSS.Map
                 _ => TileType.Enemy
             };
 
+            // 전투 설정 데이터 생성
+            var combatSetup = CreateCombatSetupData(encounterType, node.NodeId);
+
+            if (combatSetup == null || !combatSetup.IsValid())
+            {
+                Debug.LogError("[WorldMapManager] Failed to create combat setup data!");
+                return;
+            }
+
+            // GameManager에 전투 데이터 저장
+            GameManager.Instance?.PrepareCombat(combatSetup);
+
+            // 이벤트 발행 (UI 알림용)
             EventBus.Publish(new CombatStartedEvent
             {
                 EncounterType = encounterType
             });
 
+            // 전투 씬으로 이동
             GameManager.Instance?.GoToCombat();
+        }
+
+        /// <summary>
+        /// 전투 설정 데이터 생성
+        /// </summary>
+        private CombatSetupData CreateCombatSetupData(TileType encounterType, string nodeId)
+        {
+            var setup = new CombatSetupData
+            {
+                EncounterType = encounterType,
+                SourceNodeId = nodeId,
+                PartyMembers = new List<PartyMemberSetup>()
+            };
+
+            // 파티 데이터 수집 (TODO: RunManager에서 가져오기)
+            // 현재는 기본 테스트 파티 생성
+            setup.PartyMembers = CreateDefaultPartySetup();
+
+            return setup;
+        }
+
+        /// <summary>
+        /// 기본 파티 설정 생성 (RunManager 구현 전 임시)
+        /// </summary>
+        private List<PartyMemberSetup> CreateDefaultPartySetup()
+        {
+            var party = new List<PartyMemberSetup>();
+            var classes = new[] { CharacterClass.Warrior, CharacterClass.Mage, CharacterClass.Healer };
+
+            for (int i = 0; i < 3; i++)
+            {
+                party.Add(new PartyMemberSetup
+                {
+                    CharacterId = $"party_member_{i}",
+                    DisplayName = GetClassNameKorean(classes[i]),
+                    CharacterClass = classes[i],
+                    MaxHP = 50,
+                    CurrentHP = 50,
+                    MaxEnergy = 3,
+                    Speed = 10 + i
+                });
+            }
+
+            return party;
+        }
+
+        /// <summary>
+        /// 클래스 이름 한글 변환
+        /// </summary>
+        private string GetClassNameKorean(CharacterClass charClass)
+        {
+            return charClass switch
+            {
+                CharacterClass.Warrior => "전사",
+                CharacterClass.Mage => "마법사",
+                CharacterClass.Healer => "힐러",
+                _ => "캐릭터"
+            };
         }
 
         /// <summary>

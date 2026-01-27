@@ -286,11 +286,12 @@ namespace ProjectSS.Combat.UI
 
         private PartyMemberCombat GetPartyMember(string entityId)
         {
-            if (CombatManager.Instance == null) return null;
+            if (CombatManager.Instance == null || string.IsNullOrEmpty(entityId))
+                return null;
 
             foreach (var member in CombatManager.Instance.PlayerParty)
             {
-                if (member.EntityId == entityId)
+                if (member != null && member.EntityId == entityId)
                 {
                     return member;
                 }

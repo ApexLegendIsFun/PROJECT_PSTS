@@ -42,10 +42,10 @@ namespace ProjectSS.Combat
             _currentRound = 0;
             _currentTurnIndex = 0;
 
-            // 생존한 엔티티만 추가
+            // 생존한 엔티티만 추가 (null 체크 포함)
             foreach (var entity in allEntities)
             {
-                if (entity.IsAlive)
+                if (entity != null && entity.IsAlive)
                 {
                     _turnOrder.Add(entity);
                 }
@@ -64,6 +64,7 @@ namespace ProjectSS.Combat
         private void SortBySpeed()
         {
             _turnOrder = _turnOrder
+                .Where(e => e != null)
                 .OrderByDescending(e => e.Speed)
                 .ThenBy(e => e.IsPlayerCharacter ? 0 : 1) // 동일 속도시 플레이어 우선
                 .ToList();
@@ -74,7 +75,7 @@ namespace ProjectSS.Combat
         /// </summary>
         public void RemoveDeadEntities()
         {
-            _turnOrder.RemoveAll(e => !e.IsAlive);
+            _turnOrder.RemoveAll(e => e == null || !e.IsAlive);
         }
 
         #endregion
@@ -98,7 +99,10 @@ namespace ProjectSS.Combat
             // 모든 엔티티 라운드 시작 처리
             foreach (var entity in _turnOrder)
             {
-                entity.OnRoundStart();
+                if (entity != null && entity.IsAlive)
+                {
+                    entity.OnRoundStart();
+                }
             }
 
             EventBus.Publish(new RoundStartedEvent { RoundNumber = _currentRound });
@@ -116,7 +120,10 @@ namespace ProjectSS.Combat
             // 모든 엔티티 라운드 종료 처리
             foreach (var entity in _turnOrder)
             {
-                entity.OnRoundEnd();
+                if (entity != null && entity.IsAlive)
+                {
+                    entity.OnRoundEnd();
+                }
             }
 
             EventBus.Publish(new RoundEndedEvent { RoundNumber = _currentRound });
@@ -139,9 +146,12 @@ namespace ProjectSS.Combat
         /// </summary>
         public ICombatEntity StartNextTurn()
         {
-            // 사망한 엔티티 스킵
-            while (_currentTurnIndex < _turnOrder.Count && !_turnOrder[_currentTurnIndex].IsAlive)
+            // 사망하거나 null인 엔티티 스킵
+            while (_currentTurnIndex < _turnOrder.Count)
             {
+                var entity = _turnOrder[_currentTurnIndex];
+                if (entity != null && entity.IsAlive)
+                    break;
                 _currentTurnIndex++;
             }
 
@@ -152,6 +162,12 @@ namespace ProjectSS.Combat
             }
 
             _currentEntity = _turnOrder[_currentTurnIndex];
+            if (_currentEntity == null)
+            {
+                _currentTurnIndex++;
+                return StartNextTurn(); // 재귀 호출로 다음 유효한 엔티티 찾기
+            }
+
             _currentEntity.OnTurnStart();
 
             Debug.Log($"[TurnManager] Turn {_currentTurnIndex + 1}/{_turnOrder.Count}: {_currentEntity.DisplayName}");
@@ -191,7 +207,7 @@ namespace ProjectSS.Combat
         /// </summary>
         public int GetAliveCount(bool isPlayerTeam)
         {
-            return _turnOrder.Count(e => e.IsAlive && e.IsPlayerCharacter == isPlayerTeam);
+            return _turnOrder.Count(e => e != null && e.IsAlive && e.IsPlayerCharacter == isPlayerTeam);
         }
 
         /// <summary>
@@ -225,7 +241,7 @@ namespace ProjectSS.Combat
         private void LogTurnOrder()
         {
             var order = string.Join(" -> ",
-                _turnOrder.Select(e => $"{e.DisplayName}({e.Speed})" + (e.IsPlayerCharacter ? "[P]" : "[E]")));
+                _turnOrder.Where(e => e != null).Select(e => $"{e.DisplayName}({e.Speed})" + (e.IsPlayerCharacter ? "[P]" : "[E]")));
             Debug.Log($"[TurnManager] Order: {order}");
         }
 
