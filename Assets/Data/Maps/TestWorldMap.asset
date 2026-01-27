@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dffe6dd50ba1d00499ff3074cbc9fb81, type: 3}
+  m_Name: TestWorldMap
+  m_EditorClassIdentifier: 
+  MapId: act1_test
+  MapName: "1\uB9C9 - \uD14C\uC2A4\uD2B8 \uC5EC\uC815"
+  Description: "ProjectBootstrapper\uC5D0\uC11C \uC0DD\uC131\uB41C \uD14C\uC2A4\uD2B8\uC6A9
+    \uC6D4\uB4DC\uB9F5\uC785\uB2C8\uB2E4."
+  Nodes:
+  - NodeId: start
+    RegionType: 0
+    DisplayName: "\uC2DC\uC791\uC810"
+    Position: {x: 100, y: 250}
+    ConnectedNodeIds:
+    - dungeon1
+    - shelter
+    EncounterId: 
+    Difficulty: 1
+  - NodeId: dungeon1
+    RegionType: 2
+    DisplayName: "\uC5B4\uB460\uC758 \uC232"
+    Position: {x: 250, y: 100}
+    ConnectedNodeIds:
+    - start
+    - dungeon3
+    EncounterId: 
+    Difficulty: 1
+  - NodeId: shelter
+    RegionType: 1
+    DisplayName: "\uC5EC\uD589\uC790\uC758 \uC27C\uD130"
+    Position: {x: 300, y: 250}
+    ConnectedNodeIds:
+    - start
+    - dungeon2
+    - boss
+    EncounterId: 
+    Difficulty: 1
+  - NodeId: dungeon2
+    RegionType: 2
+    DisplayName: "\uACE0\uBE14\uB9B0 \uB3D9\uAD74"
+    Position: {x: 350, y: 400}
+    ConnectedNodeIds:
+    - shelter
+    EncounterId: 
+    Difficulty: 2
+  - NodeId: dungeon3
+    RegionType: 2
+    DisplayName: "\uC78A\uD600\uC9C4 \uC720\uC801"
+    Position: {x: 500, y: 100}
+    ConnectedNodeIds:
+    - dungeon1
+    - boss
+    EncounterId: 
+    Difficulty: 3
+  - NodeId: boss
+    RegionType: 3
+    DisplayName: "\uB4DC\uB798\uACE4\uC758 \uB465\uC9C0"
+    Position: {x: 600, y: 250}
+    ConnectedNodeIds:
+    - shelter
+    - dungeon3
+    EncounterId: 
+    Difficulty: 5
+  StartNodeId: start
+  EndNodeId: boss

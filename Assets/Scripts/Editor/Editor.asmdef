@@ -1,0 +1,23 @@
+{
+    "name": "Editor",
+    "rootNamespace": "ProjectSS.Editor",
+    "references": [
+        "Core",
+        "Combat",
+        "Map",
+        "MainMenu",
+        "Data",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

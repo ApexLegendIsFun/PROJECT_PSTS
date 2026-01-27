@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efa7a93bfaf11594783febf823b092e2, type: 3}
+  m_Name: Defend
+  m_EditorClassIdentifier: 
+  _cardId: defend
+  _cardName: "\uC218\uBE44"
+  _description: "5 \uBC29\uC5B4\uB9C9\uC744 \uC5BB\uC2B5\uB2C8\uB2E4."
+  _upgradeDescription: "8 \uBC29\uC5B4\uB9C9\uC744 \uC5BB\uC2B5\uB2C8\uB2E4."
+  _cardType: 1
+  _rarity: 0
+  _targetType: 0
+  _energyCost: 1
+  _upgradedEnergyCost: 1
+  _effects:
+  - {fileID: 11400000, guid: 6eac86e2e21b1254d9bea82978ad1d64, type: 2}
+  _upgradedEffects:
+  - {fileID: 11400000, guid: be0fe4a39c4fbcf4c96db1e63c50ecc8, type: 2}
+  _cardArt: {fileID: 0}

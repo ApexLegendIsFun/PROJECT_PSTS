@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c4b01800903d944091ac59a11109f28, type: 3}
+  m_Name: mage_CardPool
+  m_EditorClassIdentifier: 
+  _characterId: mage
+  _characterName: "\uB9C8\uBC95\uC0AC"
+  _starterDeck:
+  - Card: {fileID: 11400000, guid: 051824f2c41ede247821830503fe47ac, type: 2}
+    Count: 3
+  - Card: {fileID: 11400000, guid: c3fe759a71c5ec3468b30f4b536f3b10, type: 2}
+    Count: 5
+  _commonPool: []
+  _uncommonPool: []
+  _rarePool: []

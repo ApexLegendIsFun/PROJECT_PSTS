@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6eff4ae8fa5d83945b2109df5bbeb84e, type: 3}
+  m_Name: WorldMapVisualConfig
+  m_EditorClassIdentifier: 
+  _regionVisuals:
+  - RegionType: 0
+    BackgroundColor: {r: 0.2, g: 0.7, b: 0.9, a: 1}
+    Icon: {fileID: 0}
+    DisplayName: "\uC2DC\uC791"
+    Description: "\uC5EC\uC815\uC758 \uC2DC\uC791\uC810"
+  - RegionType: 1
+    BackgroundColor: {r: 0.3, g: 0.8, b: 0.3, a: 1}
+    Icon: {fileID: 0}
+    DisplayName: "\uC27C\uD130"
+    Description: "\uD734\uC2DD\uC744 \uCDE8\uD558\uACE0 \uD68C\uBCF5\uD560 \uC218
+      \uC788\uC2B5\uB2C8\uB2E4"
+  - RegionType: 2
+    BackgroundColor: {r: 0.8, g: 0.3, b: 0.3, a: 1}
+    Icon: {fileID: 0}
+    DisplayName: "\uB358\uC804"
+    Description: "\uC801\uACFC\uC758 \uC804\uD22C\uAC00 \uAE30\uB2E4\uB9AC\uACE0
+      \uC788\uC2B5\uB2C8\uB2E4"
+  - RegionType: 3
+    BackgroundColor: {r: 0.5, g: 0, b: 0.8, a: 1}
+    Icon: {fileID: 0}
+    DisplayName: "\uBCF4\uC2A4"
+    Description: "\uAC15\uB825\uD55C \uC801\uC774 \uAE30\uB2E4\uB9AC\uACE0 \uC788\uC2B5\uB2C8\uB2E4"
+  - RegionType: 4
+    BackgroundColor: {r: 1, g: 0.84, b: 0, a: 1}
+    Icon: {fileID: 0}
+    DisplayName: "\uBAA9\uC801\uC9C0"
+    Description: "\uC5EC\uC815\uC758 \uB05D"
+  PathDefaultColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
+  PathTraversedColor: {r: 0.9, g: 0.8, b: 0.3, a: 1}
+  AccessibleGlowColor: {r: 1, g: 1, b: 0.5, a: 0.5}
+  ClearedOverlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+  PlayerMarkerColor: {r: 0, g: 1, b: 1, a: 1}
+  InactiveAlpha: 0.5
