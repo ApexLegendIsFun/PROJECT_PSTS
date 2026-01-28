@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81dac27fd27fa4cabad8822f434b11b8, type: 3}
+  m_Name: Elite_Guardians
+  m_EditorClassIdentifier: 
+  _encounterId: elite_guardians
+  _encounterName: "\uC218\uD638\uC790\uB4E4"
+  _encounterType: 2
+  _enemies:
+  - EnemyData: {fileID: 11400000, guid: 2bd76ac2dc79d4b809136eae73645c33, type: 2}
+    Count: 2
+    RandomCountMin: 0
+    RandomCountMax: 0
+  _minDifficulty: 1
+  _maxDifficulty: 10
+  _actRequirement: 0
+  _baseGoldReward: 30
+  _cardRewardRarity: 2

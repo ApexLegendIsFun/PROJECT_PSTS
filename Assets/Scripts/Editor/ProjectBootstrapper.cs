@@ -44,6 +44,10 @@ namespace ProjectSS.Editor
                 EditorUtility.DisplayProgressBar("Bootstrap", "월드맵 에셋 생성 중...", 0.15f);
                 WorldMapAssetGenerator.CreateAllAssetsStatic();
 
+                // 적/인카운터 에셋 생성
+                EditorUtility.DisplayProgressBar("Bootstrap", "적/인카운터 에셋 생성 중...", 0.18f);
+                EnemyAssetGenerator.CreateAllAssetsStatic();
+
                 // 씬 빌드
                 var builders = CreateBuilders();
                 var sceneAssets = BuildAllScenes(builders);
@@ -144,7 +148,10 @@ namespace ProjectSS.Editor
                 "• 캐릭터 카드풀: 3개\n" +
                 "• 월드맵 Visual Config: 1개\n" +
                 "• 월드맵 테스트 데이터: 1개 (6노드)\n" +
-                "• 월드맵 프리팹: 2개 (노드, 경로)\n\n" +
+                "• 월드맵 프리팹: 2개 (노드, 경로)\n" +
+                "• 적 SO: 6개 (일반/엘리트/보스)\n" +
+                "• 인카운터 SO: 6개\n" +
+                "• 인카운터 풀: 3개 (Act 1)\n\n" +
                 "━━━ 생성된 씬 ━━━\n" +
                 "0: Boot\n" +
                 "1: MainMenu\n" +

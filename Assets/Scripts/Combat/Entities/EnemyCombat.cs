@@ -3,6 +3,7 @@
 
 using UnityEngine;
 using ProjectSS.Core.Events;
+using ProjectSS.Data.Enemies;
 
 namespace ProjectSS.Combat
 {
@@ -45,6 +46,9 @@ namespace ProjectSS.Combat
         [Header("Enemy Info")]
         [SerializeField] private string _enemyType = "Normal";
 
+        [Header("Visual")]
+        [SerializeField] private Sprite _portrait;
+
         [Header("Intent")]
         [SerializeField] private EnemyIntent _currentIntent;
 
@@ -56,6 +60,7 @@ namespace ProjectSS.Combat
         public override bool IsPlayerCharacter => false;
         public string EnemyType => _enemyType;
         public EnemyIntent CurrentIntent => _currentIntent;
+        public Sprite Portrait => _portrait;
 
         #region Intent System
 
@@ -222,6 +227,36 @@ namespace ProjectSS.Combat
 
             // 초기 의도 결정
             DecideNextIntent();
+        }
+
+        /// <summary>
+        /// EnemyDataSO로 초기화 (난이도 스케일링 적용)
+        /// </summary>
+        /// <param name="data">적 데이터 SO</param>
+        /// <param name="difficulty">난이도 레벨</param>
+        /// <param name="instanceIndex">인스턴스 인덱스 (고유 ID 생성용)</param>
+        public void Initialize(EnemyDataSO data, int difficulty, int instanceIndex)
+        {
+            if (data == null)
+            {
+                Debug.LogError("[EnemyCombat] EnemyDataSO is null!");
+                return;
+            }
+
+            _entityId = $"{data.EnemyId}_{instanceIndex}";
+            _displayName = data.DisplayName;
+            _enemyType = data.EnemyType;
+            _maxHP = data.GetScaledHP(difficulty);
+            _currentHP = _maxHP;
+            _speed = data.BaseSpeed;
+            _baseAttackDamage = data.GetScaledDamage(difficulty);
+            _baseBlockAmount = data.BaseBlockAmount;
+            _portrait = data.Portrait;
+
+            // 초기 의도 결정
+            DecideNextIntent();
+
+            Debug.Log($"[EnemyCombat] Initialized {_displayName} (Difficulty {difficulty}): HP={_maxHP}, Damage={_baseAttackDamage}");
         }
 
         #endregion

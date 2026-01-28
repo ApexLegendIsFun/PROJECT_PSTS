@@ -15,12 +15,18 @@ namespace ProjectSS.Combat
     [System.Serializable]
     public class CardInstance
     {
+        // 고유 인스턴스 ID 생성용 카운터
+        private static int _instanceCounter = 0;
+
         [Header("Data Reference")]
         [SerializeField] private CardDataSO _data;
 
         [Header("Runtime State")]
         [SerializeField] private bool _isUpgraded;
         [SerializeField] private bool _isExhausted;
+
+        // 고유 인스턴스 ID (같은 CardDataSO에서 생성된 카드 구분용)
+        private readonly string _instanceId;
 
         /// <summary>
         /// 카드 데이터 SO 참조
@@ -36,6 +42,11 @@ namespace ProjectSS.Combat
         /// 소멸 여부
         /// </summary>
         public bool IsExhausted => _isExhausted;
+
+        /// <summary>
+        /// 고유 인스턴스 ID (UI에서 같은 카드 구분용)
+        /// </summary>
+        public string InstanceId => _instanceId;
 
         #region Delegated Properties (SO에서 읽기)
 
@@ -180,6 +191,7 @@ namespace ProjectSS.Combat
             _data = data;
             _isUpgraded = upgraded;
             _isExhausted = false;
+            _instanceId = $"{data?.CardId ?? "null"}_{++_instanceCounter}";
         }
 
         /// <summary>
@@ -189,6 +201,7 @@ namespace ProjectSS.Combat
         {
             _isUpgraded = false;
             _isExhausted = false;
+            _instanceId = $"default_{++_instanceCounter}";
         }
 
         #endregion

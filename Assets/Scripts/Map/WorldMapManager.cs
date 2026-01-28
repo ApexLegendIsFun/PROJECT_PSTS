@@ -7,6 +7,7 @@ using UnityEngine;
 using ProjectSS.Core;
 using ProjectSS.Core.Events;
 using ProjectSS.Map.Data;
+using ProjectSS.Run;
 
 namespace ProjectSS.Map
 {
@@ -351,24 +352,46 @@ namespace ProjectSS.Map
         /// </summary>
         private CombatSetupData CreateCombatSetupData(TileType encounterType, string nodeId)
         {
+            // 난이도 계산: RunManager에서 가져오거나 기본값 사용
+            int difficulty = RunManager.Instance?.CurrentDifficulty ?? 1;
+
             var setup = new CombatSetupData
             {
                 EncounterType = encounterType,
                 SourceNodeId = nodeId,
-                PartyMembers = new List<PartyMemberSetup>()
+                PartyMembers = new List<PartyMemberSetup>(),
+                Difficulty = difficulty,
+                EncounterId = null  // 랜덤 선택
             };
 
-            // 파티 데이터 수집 (TODO: RunManager에서 가져오기)
-            // 현재는 기본 테스트 파티 생성
+            // 파티 데이터: RunManager 우선, 없으면 기본 테스트 파티
             setup.PartyMembers = CreateDefaultPartySetup();
 
+            Log($"Created combat setup: Type={encounterType}, Difficulty={difficulty}");
             return setup;
         }
 
         /// <summary>
-        /// 기본 파티 설정 생성 (RunManager 구현 전 임시)
+        /// 파티 설정 생성 (RunManager 우선, 폴백 지원)
         /// </summary>
         private List<PartyMemberSetup> CreateDefaultPartySetup()
+        {
+            // RunManager가 있고 활성화된 런이 있으면 사용
+            if (RunManager.Instance != null && RunManager.Instance.HasActiveRun)
+            {
+                Log("Using party data from RunManager");
+                return RunManager.Instance.GetPartySetupForCombat();
+            }
+
+            // 폴백: 기본 테스트 파티
+            Log("Using fallback test party (no active run)");
+            return CreateTestPartySetup();
+        }
+
+        /// <summary>
+        /// 테스트용 기본 파티 설정 생성
+        /// </summary>
+        private List<PartyMemberSetup> CreateTestPartySetup()
         {
             var party = new List<PartyMemberSetup>();
             var classes = new[] { CharacterClass.Warrior, CharacterClass.Mage, CharacterClass.Healer };

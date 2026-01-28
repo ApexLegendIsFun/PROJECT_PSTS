@@ -3,6 +3,7 @@
     "rootNamespace": "ProjectSS.Map",
     "references": [
         "Core",
+        "Run",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [],

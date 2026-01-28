@@ -33,6 +33,16 @@ namespace ProjectSS.Core
         public string SourceNodeId;
 
         /// <summary>
+        /// 난이도 레벨 (1부터 시작, 맵 노드 또는 런 진행도 기반)
+        /// </summary>
+        public int Difficulty = 1;
+
+        /// <summary>
+        /// 특정 인카운터 ID (null이면 풀에서 랜덤 선택)
+        /// </summary>
+        public string EncounterId = null;
+
+        /// <summary>
         /// 유효성 검사
         /// </summary>
         public bool IsValid()

@@ -22,10 +22,14 @@ namespace ProjectSS.Combat
         [SerializeField] private int _currentEnergy = 3;
 
         [Header("Deck Settings")]
-        [SerializeField] private int _drawPerTurn = 5;
+        [SerializeField] private int _initialDraw = 5;    // 전투 시작 시 드로우
+        [SerializeField] private int _drawPerTurn = 1;    // 매 턴 추가 드로우
 
         // 덱 매니저 참조
         private DeckManager _deckManager;
+
+        // 첫 턴 여부 (전투 시작 시 초기 드로우용)
+        private bool _isFirstTurn = true;
 
         // 카드 효과 해결자
         private CardEffectResolver _effectResolver;
@@ -132,10 +136,12 @@ namespace ProjectSS.Combat
             // 에너지 리셋
             ResetEnergy();
 
-            // 카드 드로우
+            // 카드 드로우: 첫 턴이면 초기 드로우, 아니면 턴당 드로우
             if (_deckManager != null)
             {
-                _deckManager.DrawCards(_drawPerTurn);
+                int drawCount = _isFirstTurn ? _initialDraw : _drawPerTurn;
+                _isFirstTurn = false;
+                _deckManager.DrawCards(drawCount);
             }
 
             EventBus.Publish(new TurnStartedEvent
@@ -149,11 +155,8 @@ namespace ProjectSS.Combat
         {
             base.OnTurnEnd();
 
-            // 핸드의 카드를 버리기 더미로
-            if (_deckManager != null)
-            {
-                _deckManager.DiscardHand();
-            }
+            // 손패 유지형: 턴 종료 시 손패 유지 (버리지 않음)
+            // 사용한 카드만 PlayCardFromHand()에서 버림패로 이동
 
             EventBus.Publish(new TurnEndedEvent
             {
@@ -210,7 +213,7 @@ namespace ProjectSS.Combat
             EventBus.Publish(new CardPlayedEvent
             {
                 CharacterId = EntityId,
-                CardId = card.CardId,
+                CardId = card.InstanceId,  // InstanceId 사용 (같은 카드 구분)
                 TargetId = target?.EntityId,
                 EnergyCost = card.EnergyCost
             });
@@ -235,6 +238,7 @@ namespace ProjectSS.Combat
             _maxEnergy = maxEnergy;
             _currentEnergy = maxEnergy;
             _speed = speed;
+            _isFirstTurn = true;  // 전투 시작 시 초기 드로우를 위해 리셋
         }
 
         #endregion

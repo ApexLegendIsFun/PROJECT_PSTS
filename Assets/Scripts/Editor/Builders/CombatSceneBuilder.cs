@@ -198,6 +198,9 @@ namespace ProjectSS.Editor
             // 카드풀 자동 연결
             CardAssetGenerator.LinkToInitializer(initializer);
 
+            // 인카운터 풀 자동 연결
+            EnemyAssetGenerator.LinkToInitializer(initializer);
+
             // Combat UI Controller
             var uiControllerGo = new GameObject("CombatUIController");
             var uiController = uiControllerGo.AddComponent<CombatUIController>();

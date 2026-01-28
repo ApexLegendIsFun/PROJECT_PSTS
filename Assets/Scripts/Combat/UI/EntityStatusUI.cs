@@ -26,6 +26,9 @@ namespace ProjectSS.Combat.UI
         [SerializeField] private Text _intentText;
         [SerializeField] private Image _intentIcon;
 
+        [Header("Visual")]
+        [SerializeField] private Image _portraitImage;
+
         [Header("Colors")]
         [SerializeField] private Color _playerColor = new Color(0.2f, 0.5f, 0.3f, 0.8f);
         [SerializeField] private Color _enemyColor = new Color(0.5f, 0.2f, 0.2f, 0.8f);
@@ -78,11 +81,11 @@ namespace ProjectSS.Combat.UI
             _backgroundImage = gameObject.AddComponent<Image>();
             _backgroundImage.color = isEnemy ? _enemyColor : _playerColor;
 
-            // 이름 텍스트
+            // 이름 텍스트 (상단)
             var nameGo = new GameObject("NameText");
             nameGo.transform.SetParent(transform, false);
             var nameRect = nameGo.AddComponent<RectTransform>();
-            nameRect.anchorMin = new Vector2(0, 0.8f);
+            nameRect.anchorMin = new Vector2(0, 0.88f);
             nameRect.anchorMax = new Vector2(1, 1f);
             nameRect.offsetMin = Vector2.zero;
             nameRect.offsetMax = Vector2.zero;
@@ -93,15 +96,46 @@ namespace ProjectSS.Combat.UI
             _nameText.color = Color.white;
             _nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            // HP 슬라이더
+            // 초상화 이미지 (이름 아래)
+            var portraitGo = new GameObject("PortraitImage");
+            portraitGo.transform.SetParent(transform, false);
+            var portraitRect = portraitGo.AddComponent<RectTransform>();
+            portraitRect.anchorMin = new Vector2(0.1f, 0.45f);
+            portraitRect.anchorMax = new Vector2(0.9f, 0.88f);
+            portraitRect.offsetMin = Vector2.zero;
+            portraitRect.offsetMax = Vector2.zero;
+            _portraitImage = portraitGo.AddComponent<Image>();
+            _portraitImage.preserveAspect = true;
+
+            // 적/파티원에 따른 초상화 설정
+            if (isEnemy && entity is EnemyCombat enemy)
+            {
+                if (enemy.Portrait != null)
+                {
+                    _portraitImage.sprite = enemy.Portrait;
+                    _portraitImage.color = Color.white;
+                }
+                else
+                {
+                    // 플레이스홀더 색상 (적)
+                    _portraitImage.color = new Color(0.6f, 0.3f, 0.3f, 0.8f);
+                }
+            }
+            else
+            {
+                // 플레이스홀더 색상 (파티원)
+                _portraitImage.color = new Color(0.3f, 0.5f, 0.4f, 0.8f);
+            }
+
+            // HP 슬라이더 (초상화 아래)
             CreateHPSlider();
 
             // HP 텍스트
             var hpTextGo = new GameObject("HPText");
             hpTextGo.transform.SetParent(transform, false);
             var hpTextRect = hpTextGo.AddComponent<RectTransform>();
-            hpTextRect.anchorMin = new Vector2(0, 0.4f);
-            hpTextRect.anchorMax = new Vector2(1, 0.6f);
+            hpTextRect.anchorMin = new Vector2(0, 0.22f);
+            hpTextRect.anchorMax = new Vector2(1, 0.35f);
             hpTextRect.offsetMin = Vector2.zero;
             hpTextRect.offsetMax = Vector2.zero;
             _hpText = hpTextGo.AddComponent<Text>();
@@ -114,8 +148,8 @@ namespace ProjectSS.Combat.UI
             var blockGo = new GameObject("BlockText");
             blockGo.transform.SetParent(transform, false);
             var blockRect = blockGo.AddComponent<RectTransform>();
-            blockRect.anchorMin = new Vector2(0, 0.2f);
-            blockRect.anchorMax = new Vector2(1, 0.4f);
+            blockRect.anchorMin = new Vector2(0, 0.11f);
+            blockRect.anchorMax = new Vector2(1, 0.22f);
             blockRect.offsetMin = Vector2.zero;
             blockRect.offsetMax = Vector2.zero;
             _blockText = blockGo.AddComponent<Text>();
@@ -133,9 +167,9 @@ namespace ProjectSS.Combat.UI
             UpdateAllUI();
             SubscribeToEvents();
 
-            if (isEnemy && entity is EnemyCombat enemy)
+            if (isEnemy && entity is EnemyCombat enemy2)
             {
-                UpdateIntentDisplay(enemy);
+                UpdateIntentDisplay(enemy2);
             }
         }
 
@@ -144,8 +178,8 @@ namespace ProjectSS.Combat.UI
             var sliderGo = new GameObject("HPSlider");
             sliderGo.transform.SetParent(transform, false);
             var sliderRect = sliderGo.AddComponent<RectTransform>();
-            sliderRect.anchorMin = new Vector2(0.1f, 0.6f);
-            sliderRect.anchorMax = new Vector2(0.9f, 0.75f);
+            sliderRect.anchorMin = new Vector2(0.1f, 0.35f);
+            sliderRect.anchorMax = new Vector2(0.9f, 0.45f);
             sliderRect.offsetMin = Vector2.zero;
             sliderRect.offsetMax = Vector2.zero;
 
@@ -192,7 +226,7 @@ namespace ProjectSS.Combat.UI
             _intentDisplay.transform.SetParent(transform, false);
             var intentRect = _intentDisplay.AddComponent<RectTransform>();
             intentRect.anchorMin = new Vector2(0, 0);
-            intentRect.anchorMax = new Vector2(1, 0.2f);
+            intentRect.anchorMax = new Vector2(1, 0.11f);
             intentRect.offsetMin = Vector2.zero;
             intentRect.offsetMax = Vector2.zero;
 

@@ -155,7 +155,7 @@ namespace ProjectSS.Combat.UI
         /// </summary>
         private void CreateCardUI(CardInstance card)
         {
-            if (card == null || _cardUIMap.ContainsKey(card.CardId))
+            if (card == null || _cardUIMap.ContainsKey(card.InstanceId))
             {
                 return;
             }
@@ -178,7 +178,7 @@ namespace ProjectSS.Combat.UI
             }
 
             cardUI.Initialize(card, _currentCharacter);
-            _cardUIMap[card.CardId] = cardUI;
+            _cardUIMap[card.InstanceId] = cardUI;
 
             Debug.Log($"[CardHandUI] Created card UI: {card.CardName}");
         }

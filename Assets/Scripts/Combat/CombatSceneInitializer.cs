@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectSS.Core;
 using ProjectSS.Data.Cards;
+using ProjectSS.Data.Enemies;
+using ProjectSS.Data.Encounters;
 using ProjectSS.Combat.Testing;
 
 namespace ProjectSS.Combat
@@ -51,6 +53,14 @@ namespace ProjectSS.Combat
 
         [Header("Test Encounter Settings")]
         [SerializeField] private TileType _testEncounterType = TileType.Enemy;
+
+        [Header("Encounter Pools (Data-Driven)")]
+        [Tooltip("일반 적 인카운터 풀")]
+        [SerializeField] private EncounterPoolSO _normalEncounterPool;
+        [Tooltip("엘리트 적 인카운터 풀")]
+        [SerializeField] private EncounterPoolSO _eliteEncounterPool;
+        [Tooltip("보스 인카운터 풀")]
+        [SerializeField] private EncounterPoolSO _bossEncounterPool;
 
         private void Start()
         {
@@ -163,8 +173,8 @@ namespace ProjectSS.Combat
                 return CreateEnemiesFromExplicitSetup(setupData.Enemies);
             }
 
-            // 없으면 EncounterType 기반 자동 생성
-            return GenerateEnemiesForEncounter(setupData.EncounterType);
+            // 없으면 EncounterType 기반 자동 생성 (SO 기반 우선)
+            return GenerateEnemiesForEncounter(setupData.EncounterType, setupData.Difficulty, setupData.EncounterId);
         }
 
         /// <summary>
@@ -195,13 +205,102 @@ namespace ProjectSS.Combat
         }
 
         /// <summary>
-        /// EncounterType 기반 적 자동 생성
+        /// EncounterType 기반 적 자동 생성 (SO 기반, 에러 시 명확한 메시지)
         /// </summary>
-        private List<EnemyCombat> GenerateEnemiesForEncounter(TileType encounterType)
+        /// <param name="encounterType">인카운터 타입</param>
+        /// <param name="difficulty">난이도 레벨</param>
+        /// <param name="encounterId">특정 인카운터 ID (null이면 랜덤)</param>
+        private List<EnemyCombat> GenerateEnemiesForEncounter(TileType encounterType, int difficulty = 1, string encounterId = null)
+        {
+            // 1. 인카운터 풀 확인
+            var pool = GetEncounterPoolForType(encounterType);
+            if (pool == null)
+            {
+                Debug.LogError($"[CombatSceneInitializer] EncounterPool이 할당되지 않음! " +
+                    $"타입: {encounterType}\n" +
+                    $"→ Inspector에서 '{encounterType}' 타입의 Encounter Pool SO를 할당하세요.\n" +
+                    $"→ 또는 Tools/PSTS/Bootstrap Project (Ctrl+Alt+A)를 실행하세요.");
+                return new List<EnemyCombat>();
+            }
+
+            // 2. 인카운터 선택
+            var encounter = string.IsNullOrEmpty(encounterId)
+                ? pool.GetRandomEncounter(difficulty)
+                : pool.GetEncounterById(encounterId);
+
+            if (encounter == null)
+            {
+                Debug.LogError($"[CombatSceneInitializer] Encounter를 찾을 수 없음! " +
+                    $"풀: {pool.PoolId}, 난이도: {difficulty}, ID: {encounterId ?? "랜덤"}\n" +
+                    $"→ EncounterPool SO에 Encounter가 비어있습니다.\n" +
+                    $"→ Tools/PSTS/Bootstrap Project (Ctrl+Alt+A)를 실행하세요.");
+                return new List<EnemyCombat>();
+            }
+
+            // 3. 적 생성
+            var enemies = CreateEnemiesFromEncounterSO(encounter, difficulty);
+
+            if (enemies.Count == 0)
+            {
+                Debug.LogError($"[CombatSceneInitializer] 적 생성 실패! " +
+                    $"인카운터: {encounter.EncounterName}\n" +
+                    $"→ Encounter SO에 EnemyData가 할당되지 않았습니다.\n" +
+                    $"→ Tools/PSTS/Bootstrap Project (Ctrl+Alt+A)를 실행하세요.");
+                return new List<EnemyCombat>();
+            }
+
+            return enemies;
+        }
+
+        /// <summary>
+        /// 인카운터 타입에 맞는 풀 반환
+        /// </summary>
+        private EncounterPoolSO GetEncounterPoolForType(TileType encounterType)
+        {
+            return encounterType switch
+            {
+                TileType.Boss => _bossEncounterPool,
+                TileType.Elite => _eliteEncounterPool,
+                _ => _normalEncounterPool
+            };
+        }
+
+        /// <summary>
+        /// EncounterDataSO에서 적 생성
+        /// </summary>
+        private List<EnemyCombat> CreateEnemiesFromEncounterSO(EncounterDataSO encounter, int difficulty)
+        {
+            var enemies = new List<EnemyCombat>();
+            int instanceIndex = 0;
+
+            foreach (var entry in encounter.Enemies)
+            {
+                if (entry.EnemyData == null) continue;
+
+                int count = entry.GetActualCount();
+                for (int i = 0; i < count; i++)
+                {
+                    var go = new GameObject($"Enemy_{entry.EnemyData.EnemyId}_{instanceIndex}");
+                    var enemy = go.AddComponent<EnemyCombat>();
+
+                    enemy.Initialize(entry.EnemyData, difficulty, instanceIndex);
+                    enemies.Add(enemy);
+                    instanceIndex++;
+                }
+            }
+
+            Debug.Log($"[CombatSceneInitializer] Created {enemies.Count} enemies from encounter '{encounter.EncounterName}' (difficulty {difficulty})");
+            return enemies;
+        }
+
+        /// <summary>
+        /// 폴백: 하드코딩된 적 생성 (SO가 없을 때 사용)
+        /// </summary>
+        private List<EnemyCombat> GenerateEnemiesFallback(TileType encounterType)
         {
             var enemies = new List<EnemyCombat>();
 
-            // EncounterType에 따른 적 구성
+            // EncounterType에 따른 적 구성 (기존 하드코딩 유지)
             int enemyCount;
             int baseHP;
             int baseDamage;

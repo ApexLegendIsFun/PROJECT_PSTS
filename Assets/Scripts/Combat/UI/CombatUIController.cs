@@ -57,12 +57,14 @@ namespace ProjectSS.Combat.UI
                 return;
             }
             Instance = this;
+
+            // 이벤트 구독을 Awake()에서 실행 (Start()보다 먼저 실행되어 이벤트를 놓치지 않음)
+            SubscribeToEvents();
         }
 
         private void Start()
         {
             InitializeUI();
-            SubscribeToEvents();
         }
 
         private void OnDestroy()
@@ -152,11 +154,38 @@ namespace ProjectSS.Combat.UI
 
             UpdateTurnIndicator();
 
+            // 플레이어 턴일 때 에너지 표시 업데이트 (이벤트 순서 문제 해결)
+            if (_isPlayerTurn)
+            {
+                var character = GetPlayerCharacter(evt.EntityId);
+                if (character != null)
+                {
+                    UpdateEnergyText(character.CurrentEnergy, character.MaxEnergy);
+                }
+            }
+
             // 플레이어 턴일 때만 턴 종료 버튼 활성화
             if (_endTurnButton != null)
             {
                 _endTurnButton.interactable = _isPlayerTurn;
             }
+        }
+
+        /// <summary>
+        /// EntityId로 파티원 찾기
+        /// </summary>
+        private PartyMemberCombat GetPlayerCharacter(string entityId)
+        {
+            if (CombatManager.Instance == null) return null;
+
+            foreach (var member in CombatManager.Instance.PlayerParty)
+            {
+                if (member != null && member.EntityId == entityId)
+                {
+                    return member;
+                }
+            }
+            return null;
         }
 
         private void OnTurnEnded(TurnEndedEvent evt)
