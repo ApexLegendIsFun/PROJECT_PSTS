@@ -4,6 +4,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectSS.Core;
+using ProjectSS.Core.Events;
+using ProjectSS.Services;
+using ProjectSS.Data;
 
 namespace ProjectSS.Run
 {
@@ -71,6 +74,9 @@ namespace ProjectSS.Run
             // 서비스 등록
             ServiceLocator.Register(this);
 
+            // 이벤트 구독
+            EventBus.Subscribe<RunStartedEvent>(OnRunStarted);
+
             Log("RunManager initialized.");
         }
 
@@ -78,6 +84,9 @@ namespace ProjectSS.Run
         {
             if (Instance == this)
             {
+                // 이벤트 구독 해제
+                EventBus.Unsubscribe<RunStartedEvent>(OnRunStarted);
+
                 ServiceLocator.Unregister<RunManager>();
                 Instance = null;
             }
@@ -137,6 +146,74 @@ namespace ProjectSS.Run
         {
             _currentRun = null;
             Log("Run cleared.");
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        /// <summary>
+        /// RunStartedEvent 핸들러 - 캐릭터 선택 완료 시 호출
+        /// </summary>
+        private void OnRunStarted(RunStartedEvent e)
+        {
+            if (e.PartyCharacterIds == null || e.PartyCharacterIds.Count == 0)
+            {
+                Log("RunStartedEvent received with empty party. Using defaults.");
+                StartNewRunWithDefaultParty();
+                return;
+            }
+
+            Log($"RunStartedEvent received with {e.PartyCharacterIds.Count} characters: {string.Join(", ", e.PartyCharacterIds)}");
+
+            var partyMembers = CreatePartyFromCharacterIds(e.PartyCharacterIds);
+            StartNewRun(partyMembers);
+        }
+
+        /// <summary>
+        /// 캐릭터 ID 목록으로 파티 생성
+        /// CharacterDatabase에서 캐릭터 데이터 조회
+        /// </summary>
+        private List<RunPartyMember> CreatePartyFromCharacterIds(List<string> characterIds)
+        {
+            var party = new List<RunPartyMember>();
+            var db = DataService.Instance?.Characters;
+
+            if (db == null)
+            {
+                Log("CharacterDatabase not available. Using default party.");
+                return CreateDefaultParty();
+            }
+
+            foreach (var id in characterIds)
+            {
+                var data = db.GetCharacterById(id);
+                if (data != null)
+                {
+                    party.Add(new RunPartyMember(
+                        data.Id,
+                        data.Name,
+                        data.Class,
+                        data.MaxHealth,
+                        data.BaseEnergy,
+                        data.BaseSpeed
+                    ));
+                    Log($"Added character from database: {data.Name} (HP:{data.MaxHealth}, Energy:{data.BaseEnergy}, Speed:{data.BaseSpeed})");
+                }
+                else
+                {
+                    Log($"Character not found in database: {id}");
+                }
+            }
+
+            // 폴백: 파티가 비었으면 기본 파티 사용
+            if (party.Count == 0)
+            {
+                Log("No valid characters found. Using default party.");
+                return CreateDefaultParty();
+            }
+
+            return party;
         }
 
         #endregion

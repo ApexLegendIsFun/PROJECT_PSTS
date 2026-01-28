@@ -3,7 +3,8 @@
     "rootNamespace": "ProjectSS.Run",
     "references": [
         "Core",
-        "Data"
+        "Data",
+        "Services"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

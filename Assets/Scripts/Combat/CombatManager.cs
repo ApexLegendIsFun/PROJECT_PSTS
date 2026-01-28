@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectSS.Core;
 using ProjectSS.Core.Events;
+using ProjectSS.Services;
 
 namespace ProjectSS.Combat
 {
@@ -51,6 +52,9 @@ namespace ProjectSS.Combat
 
             Instance = this;
 
+            // DataService에서 기본값 로드
+            InitializeFromConfig();
+
             // TurnManager 확인
             if (_turnManager == null)
             {
@@ -63,6 +67,25 @@ namespace ProjectSS.Combat
 
             // 서비스 등록
             ServiceLocator.Register(this);
+        }
+
+        /// <summary>
+        /// DataService에서 기본값 로드
+        /// </summary>
+        private void InitializeFromConfig()
+        {
+            var balance = DataService.Instance?.Balance;
+            if (balance == null) return;
+
+            // SerializeField 기본값이면 Config에서 로드
+            if (_turnDelay == 0.5f)
+            {
+                _turnDelay = balance.TurnDelay;
+            }
+            if (_enemyActionDelay == 1.0f)
+            {
+                _enemyActionDelay = balance.EnemyActionDelay;
+            }
         }
 
         private void OnDestroy()

@@ -75,11 +75,14 @@ namespace ProjectSS.Data.Enemies
         #region AI Behavior
 
         [Header("AI Behavior")]
-        [Tooltip("공격 확률 (0-1)")]
+        [Tooltip("AI 행동 설정 (선택적, 없으면 아래 확률 사용)")]
+        [SerializeField] private EnemyAIConfigSO _aiConfig;
+
+        [Tooltip("공격 확률 (0-1) - AI Config가 없을 때 사용")]
         [Range(0f, 1f)]
         [SerializeField] private float _attackChance = 0.7f;
 
-        [Tooltip("방어 확률 (0-1)")]
+        [Tooltip("방어 확률 (0-1) - AI Config가 없을 때 사용")]
         [Range(0f, 1f)]
         [SerializeField] private float _defendChance = 0.3f;
 
@@ -146,6 +149,16 @@ namespace ProjectSS.Data.Enemies
         /// 방어 확률
         /// </summary>
         public float DefendChance => _defendChance;
+
+        /// <summary>
+        /// AI 행동 설정 (null일 수 있음)
+        /// </summary>
+        public EnemyAIConfigSO AIConfig => _aiConfig;
+
+        /// <summary>
+        /// AI 설정 유무
+        /// </summary>
+        public bool HasAIConfig => _aiConfig != null;
 
         #endregion
 

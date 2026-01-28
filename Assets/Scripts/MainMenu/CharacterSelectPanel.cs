@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using ProjectSS.Core;
+using ProjectSS.Services;
+using ProjectSS.Data;
 
 namespace ProjectSS.MainMenu
 {
@@ -33,15 +35,8 @@ namespace ProjectSS.MainMenu
         // 선택된 캐릭터 ID 목록
         private List<string> _selectedCharacterIds = new();
 
-        // 사용 가능한 캐릭터 데이터 (임시)
-        private readonly List<CharacterSelectData> _availableCharacters = new()
-        {
-            new CharacterSelectData { Id = "warrior_01", Name = "검투사", Class = CharacterClass.Warrior },
-            new CharacterSelectData { Id = "mage_01", Name = "마법사", Class = CharacterClass.Mage },
-            new CharacterSelectData { Id = "rogue_01", Name = "암살자", Class = CharacterClass.Rogue },
-            new CharacterSelectData { Id = "healer_01", Name = "사제", Class = CharacterClass.Healer },
-            new CharacterSelectData { Id = "tank_01", Name = "수호자", Class = CharacterClass.Tank }
-        };
+        // 사용 가능한 캐릭터 데이터 (DataService에서 로드)
+        private List<CharacterSelectData> _availableCharacters = new();
 
         private void Awake()
         {
@@ -67,10 +62,55 @@ namespace ProjectSS.MainMenu
         public void Initialize()
         {
             _selectedCharacterIds.Clear();
+            LoadAvailableCharacters();
             UpdateUI();
 
             // TODO: 캐릭터 버튼 동적 생성
             // 현재는 수동 배치 가정
+        }
+
+        /// <summary>
+        /// CharacterDatabase에서 사용 가능한 캐릭터 로드
+        /// </summary>
+        private void LoadAvailableCharacters()
+        {
+            _availableCharacters.Clear();
+
+            var db = DataService.Instance?.Characters;
+            if (db == null || db.Count == 0)
+            {
+                Debug.LogWarning("[CharacterSelect] CharacterDatabase not available. Using fallback characters.");
+                LoadFallbackCharacters();
+                return;
+            }
+
+            foreach (var charData in db.Characters)
+            {
+                _availableCharacters.Add(new CharacterSelectData
+                {
+                    Id = charData.Id,
+                    Name = charData.Name,
+                    Class = charData.Class,
+                    Portrait = charData.Portrait
+                });
+            }
+
+            Debug.Log($"[CharacterSelect] Loaded {_availableCharacters.Count} characters from CharacterDatabase");
+        }
+
+        /// <summary>
+        /// 폴백: CharacterDatabase가 없을 때 기본 캐릭터 목록 사용
+        /// </summary>
+        private void LoadFallbackCharacters()
+        {
+            _availableCharacters = new List<CharacterSelectData>
+            {
+                new CharacterSelectData { Id = "warrior_01", Name = "검투사", Class = CharacterClass.Warrior },
+                new CharacterSelectData { Id = "mage_01", Name = "마법사", Class = CharacterClass.Mage },
+                new CharacterSelectData { Id = "rogue_01", Name = "암살자", Class = CharacterClass.Rogue },
+                new CharacterSelectData { Id = "healer_01", Name = "사제", Class = CharacterClass.Healer },
+                new CharacterSelectData { Id = "tank_01", Name = "수호자", Class = CharacterClass.Tank }
+            };
         }
 
         #region Character Selection

@@ -4,6 +4,7 @@
 using UnityEngine;
 using ProjectSS.Core;
 using ProjectSS.Core.Events;
+using ProjectSS.Services;
 using ProjectSS.Data.Cards;
 
 namespace ProjectSS.Combat
@@ -46,6 +47,9 @@ namespace ProjectSS.Combat
         {
             base.Awake();
 
+            // DataService에서 기본값 로드
+            InitializeFromConfig();
+
             // 덱 매니저 초기화
             _deckManager = GetComponent<DeckManager>();
             if (_deckManager == null)
@@ -55,6 +59,32 @@ namespace ProjectSS.Combat
 
             // 효과 해결자 초기화 (CombatManager는 나중에 설정)
             _effectResolver = new CardEffectResolver(null);
+        }
+
+        /// <summary>
+        /// DataService에서 기본값 로드
+        /// SerializeField 값이 수정되지 않았으면 GameBalanceConfig 값 사용
+        /// </summary>
+        private void InitializeFromConfig()
+        {
+            var balance = DataService.Instance?.Balance;
+            if (balance == null) return;
+
+            // SerializeField 기본값(3, 5, 1)이면 Config에서 로드
+            // Inspector에서 수정한 경우 해당 값 유지
+            if (_maxEnergy == 3)
+            {
+                _maxEnergy = balance.DefaultEnergy;
+                _currentEnergy = _maxEnergy;
+            }
+            if (_initialDraw == 5)
+            {
+                _initialDraw = balance.InitialDrawCount;
+            }
+            if (_drawPerTurn == 1)
+            {
+                _drawPerTurn = balance.DrawPerTurn;
+            }
         }
 
         private void Start()

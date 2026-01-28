@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectSS.Core;
+using ProjectSS.Services;
 using ProjectSS.Data.Cards;
 using ProjectSS.Data.Enemies;
 using ProjectSS.Data.Encounters;
@@ -294,13 +295,14 @@ namespace ProjectSS.Combat
         }
 
         /// <summary>
-        /// 폴백: 하드코딩된 적 생성 (SO가 없을 때 사용)
+        /// 폴백: SO가 없을 때 적 생성 (GameBalanceConfig 기반)
         /// </summary>
         private List<EnemyCombat> GenerateEnemiesFallback(TileType encounterType)
         {
             var enemies = new List<EnemyCombat>();
+            var balance = DataService.Instance?.Balance;
 
-            // EncounterType에 따른 적 구성 (기존 하드코딩 유지)
+            // EncounterType에 따른 적 구성 (GameBalanceConfig에서 로드)
             int enemyCount;
             int baseHP;
             int baseDamage;
@@ -310,22 +312,22 @@ namespace ProjectSS.Combat
             {
                 case TileType.Boss:
                     enemyCount = 1;
-                    baseHP = 100;
-                    baseDamage = 15;
+                    baseHP = balance?.FallbackBossHP ?? 100;
+                    baseDamage = balance?.FallbackBossDamage ?? 15;
                     enemyTypes = new[] { "Boss" };
                     break;
 
                 case TileType.Elite:
                     enemyCount = 2;
-                    baseHP = 50;
-                    baseDamage = 12;
+                    baseHP = balance?.FallbackEliteHP ?? 50;
+                    baseDamage = balance?.FallbackEliteDamage ?? 12;
                     enemyTypes = new[] { "Elite_A", "Elite_B" };
                     break;
 
                 default: // TileType.Enemy
                     enemyCount = Random.Range(2, 4);
-                    baseHP = 30;
-                    baseDamage = 8;
+                    baseHP = balance?.FallbackNormalHP ?? 30;
+                    baseDamage = balance?.FallbackNormalDamage ?? 8;
                     enemyTypes = new[] { "Slime", "Goblin", "Skeleton" };
                     break;
             }

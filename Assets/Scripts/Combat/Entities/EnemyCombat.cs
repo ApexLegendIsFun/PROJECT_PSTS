@@ -2,22 +2,14 @@
 // 적 전투 엔티티
 
 using UnityEngine;
+using ProjectSS.Core;
 using ProjectSS.Core.Events;
+using ProjectSS.Services;
 using ProjectSS.Data.Enemies;
 
 namespace ProjectSS.Combat
 {
-    /// <summary>
-    /// 적 의도 타입
-    /// </summary>
-    public enum EnemyIntentType
-    {
-        Attack,         // 공격
-        Defend,         // 방어
-        Buff,           // 버프
-        Debuff,         // 디버프
-        Unknown         // 알 수 없음
-    }
+    // EnemyIntentType은 ProjectSS.Core.CoreEnums.cs에 정의됨
 
     /// <summary>
     /// 적 의도 데이터
@@ -56,6 +48,12 @@ namespace ProjectSS.Combat
         [SerializeField] private int _baseAttackDamage = 10;
         [SerializeField] private int _baseBlockAmount = 5;
 
+        [Header("AI Config")]
+        [SerializeField] private EnemyAIConfigSO _aiConfig;
+        private int _turnCount = 0;
+        private EnemyIntentType _lastIntentType = EnemyIntentType.Unknown;
+        private int _consecutiveSameAction = 0;
+
         // 프로퍼티
         public override bool IsPlayerCharacter => false;
         public string EnemyType => _enemyType;
@@ -69,18 +67,54 @@ namespace ProjectSS.Combat
         /// </summary>
         public void DecideNextIntent()
         {
-            // 간단한 AI: 랜덤하게 공격 또는 방어
-            float roll = Random.value;
+            EnemyIntentType intentType;
 
-            if (roll < 0.7f)
+            // AI Config가 있으면 사용
+            if (_aiConfig != null)
             {
-                // 70% 확률로 공격
-                _currentIntent = new EnemyIntent(EnemyIntentType.Attack, _baseAttackDamage);
+                float healthRatio = (float)CurrentHP / MaxHP;
+                bool isFirstTurn = _turnCount == 0;
+
+                intentType = _aiConfig.SelectIntent(
+                    healthRatio,
+                    isFirstTurn,
+                    _lastIntentType,
+                    _consecutiveSameAction
+                );
             }
             else
             {
-                // 30% 확률로 방어
-                _currentIntent = new EnemyIntent(EnemyIntentType.Defend, _baseBlockAmount);
+                // 폴백: DataService에서 기본 공격 확률 로드 (없으면 0.7f)
+                var balance = DataService.Instance?.Balance;
+                float attackChance = balance?.DefaultEnemyAttackChance ?? 0.7f;
+
+                float roll = Random.value;
+                intentType = roll < attackChance ? EnemyIntentType.Attack : EnemyIntentType.Defend;
+            }
+
+            // 연속 같은 행동 카운트 업데이트
+            if (intentType == _lastIntentType)
+            {
+                _consecutiveSameAction++;
+            }
+            else
+            {
+                _consecutiveSameAction = 1;
+            }
+            _lastIntentType = intentType;
+
+            // 의도 생성
+            switch (intentType)
+            {
+                case EnemyIntentType.Attack:
+                    _currentIntent = new EnemyIntent(EnemyIntentType.Attack, _baseAttackDamage);
+                    break;
+                case EnemyIntentType.Defend:
+                    _currentIntent = new EnemyIntent(EnemyIntentType.Defend, _baseBlockAmount);
+                    break;
+                default:
+                    _currentIntent = new EnemyIntent(EnemyIntentType.Attack, _baseAttackDamage);
+                    break;
             }
 
             Debug.Log($"[{DisplayName}] Intent: {_currentIntent.Type} ({_currentIntent.Value})");
@@ -187,6 +221,9 @@ namespace ProjectSS.Combat
         {
             base.OnTurnEnd();
 
+            // 턴 카운트 증가
+            _turnCount++;
+
             // 다음 의도 결정
             DecideNextIntent();
 
@@ -252,6 +289,12 @@ namespace ProjectSS.Combat
             _baseAttackDamage = data.GetScaledDamage(difficulty);
             _baseBlockAmount = data.BaseBlockAmount;
             _portrait = data.Portrait;
+
+            // AI 설정 로드
+            _aiConfig = data.AIConfig;
+            _turnCount = 0;
+            _consecutiveSameAction = 0;
+            _lastIntentType = EnemyIntentType.Unknown;
 
             // 초기 의도 결정
             DecideNextIntent();

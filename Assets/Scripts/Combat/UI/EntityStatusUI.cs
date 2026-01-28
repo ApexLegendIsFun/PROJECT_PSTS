@@ -3,6 +3,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using ProjectSS.Core;
 using ProjectSS.Core.Events;
 
 namespace ProjectSS.Combat.UI

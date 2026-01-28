@@ -1,12 +1,13 @@
-// Core/BootLoader.cs
+// Services/BootLoader.cs
 // 부팅 시퀀스 관리자
 
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using ProjectSS.Core;
 using ProjectSS.Core.Events;
 
-namespace ProjectSS.Core
+namespace ProjectSS.Services
 {
     /// <summary>
     /// 부팅 시퀀스 관리
@@ -108,12 +109,16 @@ namespace ProjectSS.Core
         {
             Debug.Log("[BootLoader] Loading essential assets...");
 
-            // TODO: Addressables 또는 Resources에서 필수 에셋 로드
+            // DataService 초기화
+            var dataService = new DataService();
+            dataService.Initialize();
+
+            yield return null;
+
+            // 추가 에셋 로드 (필요시 확장)
             // - 카드 데이터
             // - 캐릭터 데이터
             // - UI 프리팹 등
-
-            yield return null;
 
             Debug.Log("[BootLoader] Essential assets loaded.");
         }

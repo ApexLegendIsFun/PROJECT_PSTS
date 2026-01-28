@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor.SceneManagement;
 using ProjectSS.Core;
+using ProjectSS.Services;
+using ProjectSS.Run;
 
 namespace ProjectSS.Editor
 {
@@ -61,6 +63,10 @@ namespace ProjectSS.Editor
             // BootLoader 컴포넌트
             var bootLoaderGo = new GameObject("BootLoader");
             var bootLoader = bootLoaderGo.AddComponent<BootLoader>();
+
+            // RunManager 생성 (DontDestroyOnLoad 자동 적용됨)
+            var runManagerGo = new GameObject("RunManager");
+            runManagerGo.AddComponent<RunManager>();
 
             // SerializedField 연결
             UIComponentFactory.SetPrivateField(bootLoader, "_logoObject", logoPanel);

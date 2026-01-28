@@ -36,6 +36,10 @@ namespace ProjectSS.Editor
                 AssetDatabase.Refresh();
                 EnsureScenesFolder();
 
+                // 설정 에셋 생성
+                EditorUtility.DisplayProgressBar("Bootstrap", "설정 에셋 생성 중...", 0.05f);
+                ConfigAssetGenerator.CreateAllAssetsStatic();
+
                 // 카드 에셋 생성
                 EditorUtility.DisplayProgressBar("Bootstrap", "카드 에셋 생성 중...", 0.1f);
                 CardAssetGenerator.CreateAllAssetsStatic();
@@ -47,6 +51,10 @@ namespace ProjectSS.Editor
                 // 적/인카운터 에셋 생성
                 EditorUtility.DisplayProgressBar("Bootstrap", "적/인카운터 에셋 생성 중...", 0.18f);
                 EnemyAssetGenerator.CreateAllAssetsStatic();
+
+                // 캐릭터 에셋 생성
+                EditorUtility.DisplayProgressBar("Bootstrap", "캐릭터 에셋 생성 중...", 0.19f);
+                CharacterAssetGenerator.CreateAllAssetsStatic();
 
                 // 씬 빌드
                 var builders = CreateBuilders();
@@ -75,8 +83,11 @@ namespace ProjectSS.Editor
                 "프로젝트 부트스트랩",
                 "즉시 플레이 가능한 개발 환경을 구축합니다.\n\n" +
                 "생성 항목:\n" +
+                "• 설정 에셋 (GameBalanceConfig, EnemyAIConfig)\n" +
                 "• 카드 에셋 (효과 SO, 카드 SO, 카드풀)\n" +
                 "• 월드맵 에셋 (Visual Config, 테스트맵, 프리팹)\n" +
+                "• 적/인카운터 에셋\n" +
+                "• 캐릭터 에셋 (CharacterData, CharacterDatabase)\n" +
                 "• 4개 씬 (Boot, MainMenu, Map, Combat)\n" +
                 "• UI 컴포넌트 및 매니저\n\n" +
                 "기존 에셋/씬이 있으면 덮어씁니다.",
@@ -143,6 +154,12 @@ namespace ProjectSS.Editor
                 "부트스트랩 완료",
                 "개발 환경 구축이 완료되었습니다!\n\n" +
                 "━━━ 생성된 에셋 ━━━\n" +
+                "• 설정 에셋:\n" +
+                "  - GameBalanceConfig: 1개\n" +
+                "  - EnemyAIConfig: 3개 (Default, Aggressive, Defensive)\n" +
+                "• 캐릭터 에셋:\n" +
+                "  - CharacterData: 5개 (검투사, 마법사, 암살자, 사제, 수호자)\n" +
+                "  - CharacterDatabase: 1개\n" +
                 "• 카드 효과 SO: 9개\n" +
                 "• 카드 SO: 3개\n" +
                 "• 캐릭터 카드풀: 3개\n" +

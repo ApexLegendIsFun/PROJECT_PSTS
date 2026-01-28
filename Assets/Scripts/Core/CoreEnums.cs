@@ -140,4 +140,16 @@ namespace ProjectSS.Core
         Boss,           // 보스 던전
         End             // 종료점
     }
+
+    /// <summary>
+    /// 적 의도 타입
+    /// </summary>
+    public enum EnemyIntentType
+    {
+        Attack,         // 공격
+        Defend,         // 방어
+        Buff,           // 버프
+        Debuff,         // 디버프
+        Unknown         // 알 수 없음
+    }
 }

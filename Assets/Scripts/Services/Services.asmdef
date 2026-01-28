@@ -1,19 +1,11 @@
 {
-    "name": "Editor",
-    "rootNamespace": "ProjectSS.Editor",
+    "name": "Services",
+    "rootNamespace": "ProjectSS.Services",
     "references": [
         "Core",
-        "Combat",
-        "Map",
-        "MainMenu",
-        "Data",
-        "Run",
-        "Services",
-        "Unity.TextMeshPro"
+        "Data"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

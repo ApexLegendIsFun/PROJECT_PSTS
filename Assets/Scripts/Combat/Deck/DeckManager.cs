@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectSS.Core.Events;
+using ProjectSS.Services;
 using ProjectSS.Data.Cards;
 
 namespace ProjectSS.Combat
@@ -35,6 +36,26 @@ namespace ProjectSS.Combat
         public int DrawPileCount => _drawPile.Count;
         public int HandCount => _hand.Count;
         public int DiscardPileCount => _discardPile.Count;
+
+        private void Awake()
+        {
+            InitializeFromConfig();
+        }
+
+        /// <summary>
+        /// DataService에서 기본값 로드
+        /// </summary>
+        private void InitializeFromConfig()
+        {
+            var balance = DataService.Instance?.Balance;
+            if (balance == null) return;
+
+            // SerializeField 기본값(10)이면 Config에서 로드
+            if (_maxHandSize == 10)
+            {
+                _maxHandSize = balance.MaxHandSize;
+            }
+        }
 
         #region Initialization
 

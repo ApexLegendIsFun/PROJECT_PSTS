@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55511377568b14ed288d8037095f3ad5, type: 3}
+  m_Name: GameBalanceConfig
+  m_EditorClassIdentifier: 
+  _defaultMaxHP: 100
+  _defaultEnergy: 3
+  _defaultSpeed: 10
+  _maxHandSize: 10
+  _initialDrawCount: 5
+  _drawPerTurn: 1
+  _turnDelay: 0.5
+  _enemyActionDelay: 1
+  _defaultEnemyAttackDamage: 10
+  _defaultEnemyBlockAmount: 5
+  _defaultEnemyAttackChance: 0.7
+  _defaultEnemyDefendChance: 0.3
+  _hpScalePerDifficulty: 0.1
+  _damageScalePerDifficulty: 0.1
+  _goldScalePerDifficulty: 0.1
+  _testPartySize: 3
+  _testPartyHP: 50
+  _testPartyEnergy: 3
+  _testPartySpeed: 10
+  _testEnemyCount: 2
+  _testEnemyHP: 30
+  _testEnemySpeed: 8
+  _testEnemyDamage: 8
+  _fallbackBossHP: 100
+  _fallbackBossDamage: 15
+  _fallbackEliteHP: 50
+  _fallbackEliteDamage: 12
+  _fallbackNormalHP: 30
+  _fallbackNormalDamage: 8

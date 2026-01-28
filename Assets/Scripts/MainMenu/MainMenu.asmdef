@@ -2,7 +2,9 @@
     "name": "MainMenu",
     "rootNamespace": "ProjectSS.MainMenu",
     "references": [
-        "Core"
+        "Core",
+        "Data",
+        "Services"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
