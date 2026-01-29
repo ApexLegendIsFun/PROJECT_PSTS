@@ -78,8 +78,12 @@ namespace ProjectSS.Combat.UI
             _entity = entity;
             _isEnemy = isEnemy;
 
-            // 배경
-            _backgroundImage = gameObject.AddComponent<Image>();
+            // 배경 - check if Image already exists (from scene builder)
+            _backgroundImage = GetComponent<Image>();
+            if (_backgroundImage == null)
+            {
+                _backgroundImage = gameObject.AddComponent<Image>();
+            }
             _backgroundImage.color = isEnemy ? _enemyColor : _playerColor;
 
             // 이름 텍스트 (상단)
@@ -365,6 +369,36 @@ namespace ProjectSS.Combat.UI
                 EnemyIntentType.Defend => Color.cyan,
                 _ => Color.yellow
             };
+        }
+
+        /// <summary>
+        /// 체력바 숨기기 (보스전에서 사용)
+        /// </summary>
+        public void HideHealthBar()
+        {
+            if (_hpSlider != null)
+            {
+                _hpSlider.gameObject.SetActive(false);
+            }
+            if (_hpText != null)
+            {
+                _hpText.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// 체력바 표시 (일반전에서 사용)
+        /// </summary>
+        public void ShowHealthBar()
+        {
+            if (_hpSlider != null)
+            {
+                _hpSlider.gameObject.SetActive(true);
+            }
+            if (_hpText != null)
+            {
+                _hpText.gameObject.SetActive(true);
+            }
         }
 
         #endregion

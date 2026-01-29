@@ -29,6 +29,7 @@ namespace ProjectSS.Combat.UI
         private bool _isTargeting;
         private CardInstance _currentCard;
         private List<EntityStatusUI> _validTargets = new();
+        private List<PartyMemberSlotUI> _validAllySlots = new();
         private Dictionary<EntityStatusUI, Color> _originalColors = new();
 
         private void Awake()
@@ -78,6 +79,7 @@ namespace ProjectSS.Combat.UI
             // 하이라이트 제거
             ClearHighlights();
             _validTargets.Clear();
+            _validAllySlots.Clear();
 
             // 타겟팅 라인 숨기기
             if (_targetingLine != null)
@@ -98,10 +100,18 @@ namespace ProjectSS.Combat.UI
 
             foreach (var result in results)
             {
+                // EntityStatusUI 검색 (적)
                 var statusUI = result.gameObject.GetComponentInParent<EntityStatusUI>();
                 if (statusUI != null && _validTargets.Contains(statusUI))
                 {
                     return GetEntityFromStatusUI(statusUI);
+                }
+
+                // PartyMemberSlotUI 검색 (아군)
+                var slotUI = result.gameObject.GetComponentInParent<PartyMemberSlotUI>();
+                if (slotUI != null && _validAllySlots.Contains(slotUI))
+                {
+                    return GetEntityFromSlotUI(slotUI);
                 }
             }
 
@@ -175,6 +185,21 @@ namespace ProjectSS.Combat.UI
 
         private void AddAllyTargets()
         {
+            // PartyFormationUI 사용 시 PartyMemberSlotUI 검색
+            var formationUI = CombatUIController.Instance?.GetPartyFormationUI();
+            if (formationUI != null && formationUI.MemberSlots != null)
+            {
+                foreach (var slot in formationUI.MemberSlots)
+                {
+                    if (slot != null)
+                    {
+                        _validAllySlots.Add(slot);
+                    }
+                }
+                return;
+            }
+
+            // Fallback: EntityStatusUI 검색 (기존 방식)
             var partyContainer = CombatUIController.Instance?.GetPartyContainer();
             if (partyContainer == null) return;
 
@@ -194,6 +219,7 @@ namespace ProjectSS.Combat.UI
 
         private void HighlightValidTargets()
         {
+            // EntityStatusUI 하이라이트 (적)
             foreach (var statusUI in _validTargets)
             {
                 var image = statusUI.GetComponent<UnityEngine.UI.Image>();
@@ -209,10 +235,17 @@ namespace ProjectSS.Combat.UI
                     image.color = Color.Lerp(image.color, _validTargetColor, 0.5f);
                 }
             }
+
+            // PartyMemberSlotUI 하이라이트 (아군)
+            foreach (var slotUI in _validAllySlots)
+            {
+                slotUI.SetTargetHighlight(true, _validTargetColor);
+            }
         }
 
         private void ClearHighlights()
         {
+            // EntityStatusUI 하이라이트 해제 (적)
             foreach (var kvp in _originalColors)
             {
                 if (kvp.Key != null)
@@ -225,6 +258,15 @@ namespace ProjectSS.Combat.UI
                 }
             }
             _originalColors.Clear();
+
+            // PartyMemberSlotUI 하이라이트 해제 (아군)
+            foreach (var slotUI in _validAllySlots)
+            {
+                if (slotUI != null)
+                {
+                    slotUI.SetTargetHighlight(false, Color.clear);
+                }
+            }
         }
 
         #endregion
@@ -260,6 +302,20 @@ namespace ProjectSS.Combat.UI
         private ICombatEntity GetCurrentTurnEntity()
         {
             return CombatManager.Instance?.GetCurrentTurnEntity();
+        }
+
+        private ICombatEntity GetEntityFromSlotUI(PartyMemberSlotUI slotUI)
+        {
+            if (CombatManager.Instance == null || slotUI == null) return null;
+
+            foreach (var member in CombatManager.Instance.PlayerParty)
+            {
+                if (member.EntityId == slotUI.EntityId)
+                {
+                    return member;
+                }
+            }
+            return null;
         }
 
         #endregion

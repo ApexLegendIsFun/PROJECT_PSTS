@@ -18,8 +18,10 @@ namespace ProjectSS.Combat.UI
         [SerializeField] private GameObject _cardUIPrefab;
 
         [Header("Layout")]
-        [SerializeField] private float _cardSpacing = -30f; // 겹치는 효과
-        [SerializeField] private float _fanAngle = 5f;      // 부채꼴 각도
+        [SerializeField] private float _cardSpacing = -30f;    // 겹치는 효과
+        [SerializeField] private float _maxFanAngle = 10f;     // 최대 부채꼴 각도 (±10°)
+        [SerializeField] private float _fanYOffset = 20f;      // 부채꼴 Y 오프셋 (포물선 높이)
+        [SerializeField] private float _cardWidth = 100f;      // 카드 너비
         [SerializeField] private bool _useFanLayout = true;
 
         // 현재 표시 중인 카드 UI들
@@ -245,23 +247,50 @@ namespace ProjectSS.Combat.UI
             }
         }
 
+        /// <summary>
+        /// 부채꼴 레이아웃 적용 (±10° 범위, 포물선 Y 오프셋)
+        /// Fan layout with ±10° angle range and parabolic Y offset
+        /// </summary>
         private void ApplyFanLayout(List<CardUI> cards)
         {
             int count = cards.Count;
-            float totalAngle = _fanAngle * (count - 1);
-            float startAngle = totalAngle / 2;
+            if (count == 0) return;
+
+            // 카드가 1장일 때는 중앙에 0도로 배치
+            if (count == 1)
+            {
+                var rect = cards[0].GetComponent<RectTransform>();
+                rect.localRotation = Quaternion.identity;
+                rect.localPosition = Vector3.zero;
+                return;
+            }
+
+            // 각도 계산: -maxAngle ~ +maxAngle 범위로 균등 분배
+            float angleStep = (_maxFanAngle * 2f) / (count - 1);
 
             for (int i = 0; i < count; i++)
             {
                 var cardUI = cards[i];
                 var rect = cardUI.GetComponent<RectTransform>();
 
-                float angle = startAngle - (_fanAngle * i);
+                // 각도: 왼쪽 카드 = 음수 각도, 오른쪽 카드 = 양수 각도
+                float angle = -_maxFanAngle + (angleStep * i);
                 rect.localRotation = Quaternion.Euler(0, 0, angle);
 
-                // 위치 조정
-                float xOffset = (i - (count - 1) / 2f) * 80f;
-                rect.localPosition = new Vector3(xOffset, 0, 0);
+                // X 위치: 좌우로 균등 분배
+                float normalizedX = (float)i / (count - 1) - 0.5f;  // -0.5 ~ 0.5
+                float xOffset = normalizedX * (count - 1) * (_cardWidth * 0.6f);
+
+                // Y 위치: 포물선 곡선 (중앙 카드가 가장 높음)
+                // 포물선: y = a * (1 - x²) 형태
+                float yOffset = (1f - (normalizedX * normalizedX * 4f)) * _fanYOffset;
+
+                rect.localPosition = new Vector3(xOffset, yOffset, 0);
+
+                // Z 순서: 중앙 카드가 위에 오도록 (가장 최근에 그려짐)
+                // sibling index로 순서 조정 - 중앙 카드가 가장 마지막
+                int siblingOrder = Mathf.Abs(i - count / 2);
+                rect.SetSiblingIndex(count - 1 - siblingOrder);
             }
         }
 

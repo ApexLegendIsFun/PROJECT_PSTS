@@ -320,4 +320,18 @@ namespace ProjectSS.Core.Events
     }
 
     #endregion
+
+    #region Deck Pile Events
+
+    /// <summary>
+    /// 덱 더미 변경 이벤트 (뽑을 덱 / 버린 덱)
+    /// </summary>
+    public struct DeckPileChangedEvent
+    {
+        public string CharacterId;
+        public int DrawPileCount;
+        public int DiscardPileCount;
+    }
+
+    #endregion
 }
